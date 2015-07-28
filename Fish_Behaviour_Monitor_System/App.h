@@ -9,7 +9,9 @@
 #include"SystemSet.h"
 #include"SystemDB.h"
 #include"ImgProcessSet.h"
-#include"sendwatertakingsignal.h"
+
+#include "sendsms.h"
+#include "sendwatertakingsignal.h"
 
 class App :	public QObject
 {
@@ -26,7 +28,11 @@ private:
 	SystemSet*     _sys_set;
 	SysDB*         _sys_db;
 
+public:
+
+	SendSMS *_sms_sender;
 	SendWaterTakingSignal* _water_taking_siganl_sender;
+
 };
 
 

@@ -14,8 +14,8 @@
 #include <QComboBox>
 #include <QRadioButton>
 
-#include <QSqlQuery>
-#include <qdebug.h>
+#include <QtSql\qsqlquery.h>
+#include <QtCore\qdebug.h>
 
 
 #pragma execution_character_set("utf-8")//解决中文乱码

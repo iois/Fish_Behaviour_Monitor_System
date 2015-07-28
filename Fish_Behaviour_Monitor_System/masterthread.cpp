@@ -37,6 +37,7 @@
 
 #include <QTime>
 
+
 QT_USE_NAMESPACE
 
 void MasterThread::my_set_BaudRate(int baud_rate){

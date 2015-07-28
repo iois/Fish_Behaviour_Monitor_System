@@ -34,9 +34,9 @@
 #ifndef MASTERTHREAD_H
 #define MASTERTHREAD_H
 
-#include <QThread>
-#include <QMutex>
-#include <QWaitCondition>
+#include <QtCore\qthread.h>
+#include <QtCore\qmutex.h>
+#include <QtCore\qwaitcondition.h>
 
 //! [0]
 class MasterThread : public QThread

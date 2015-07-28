@@ -170,6 +170,15 @@
     <ClCompile Include="WarningViewWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_sendsms.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_sendsms.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="sendsms.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="monitorsystem.h">
@@ -211,40 +220,41 @@
     <CustomBuild Include="VideoProcessing.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="GeneratedFiles\ui_monitorsystem.h">
+    <CustomBuild Include="GeneratedFiles\ui_monitorsystem.h">
       <Filter>Generated Files</Filter>
-    </ClInclude>
-    <ClInclude Include="App.h">
+    </CustomBuild>
+    <CustomBuild Include="App.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DataShowWidget.h">
+    </CustomBuild>
+    <CustomBuild Include="DataShowWidget.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Fish.h">
+    </CustomBuild>
+    <CustomBuild Include="Fish.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImgShowWidget.h">
+    </CustomBuild>
+    <CustomBuild Include="ImgShowWidget.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="mode_processing.h">
+    </CustomBuild>
+    <CustomBuild Include="mode_processing.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="My_Delaunay.h">
+    </CustomBuild>
+    <CustomBuild Include="My_Delaunay.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MyVideoPlayer.h">
+    </CustomBuild>
+    <CustomBuild Include="MyVideoPlayer.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="NewMonitor_dlg.h">
+    </CustomBuild>
+    <CustomBuild Include="NewMonitor_dlg.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VideoDataDisplayer.h">
+    </CustomBuild>
+    <CustomBuild Include="VideoDataDisplayer.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="WarningViewWidget.h">
+    </CustomBuild>
+    <CustomBuild Include="WarningViewWidget.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
+    </CustomBuild>
+    <CustomBuild Include="sendsms.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

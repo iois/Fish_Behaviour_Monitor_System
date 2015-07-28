@@ -19,6 +19,10 @@ App::App()
 
 	_water_taking_siganl_sender = new SendWaterTakingSignal();
 
+	_sms_sender = new SendSMS();
+
+
+
 	//main_window->showFullScreen();//无边框，最大化，无最小化最大化窗口
 	_main_window->showMaximized();
 

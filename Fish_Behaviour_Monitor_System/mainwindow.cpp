@@ -265,7 +265,7 @@ void MainWindow::updata_data(size_t modeIndex, double data){
 void MainWindow::about()
 {
 	QString MESSAGE =
-		tr("生物式水质监测系统V1.0 \n浙江工业大学\n计算机学院 \n水质监测项目组\n\n基于opencv，Qt \n\n有问题找邵腾飞                              ");
+		tr("生物式水质监测系统V1.0 \n浙江工业大学\n计算机学院 \n水质监测项目组\n\n基于opencv，Qt \n\n                            ");
 	QMessageBox msgBox(QMessageBox::Icon::Information, tr("关于"), MESSAGE, 0, this);
 	msgBox.setWindowIcon(QIcon("images/about.ico"));
 	msgBox.exec();
