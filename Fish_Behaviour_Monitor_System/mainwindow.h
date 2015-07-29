@@ -31,13 +31,13 @@ class MainWindow : public QMainWindow
 	Q_OBJECT
 
 public:
-	MainWindow(QWidget *parent = 0, VideoProcessing *vp = 0, QTimer *t = 0, SystemSet* sys_set = 0, SysDB* sys_db = 0, ImgProcessSet* imgset=0);
+	MainWindow(QWidget *parent = 0, VideoProcessing *vp = 0);
 	~MainWindow();
 
 public:
 	// Action
 	void createActions();
-	//QAction *newMonitor;
+
 	QAction *opencamera;  // 1 打开摄像头
 	QAction *openfile;    // 1 打开文件
 	QAction *background_pickup_Act;    // 1-2 提取背景
@@ -49,6 +49,7 @@ public:
 	QAction *DB_manage_Act;
 	QAction *aboutAct;
 	QAction *exitAct;
+
 private:
 	// Menu
 	void createMenus();
@@ -70,12 +71,11 @@ private:
 
 private:
 	void setupUi();
-	//ImgShowWidget_opencv *ui_img_view;
+
 	ImgShowWidget_Mat *ui_img_view;
 
 public:
 	WarningViewWidget *ui_warning_view;
-
 
 	QTabWidget *tabWidget;//data show 
 
@@ -93,8 +93,8 @@ private:
 	DataShowWidget *ui_data_view_9;//死亡条数
 
 public:
-	QDockWidget *dock_set;
-	QDockWidget *dock_img_process_set;
+	QDockWidget *dock_set;            // need to add widget on this;
+	QDockWidget *dock_img_process_set;// need to add widget on this;
 
 public:	//给 video_processing 调用
 	void updata_img(IplImage *src);//观察vp的变化->显示图像
@@ -102,29 +102,12 @@ public:	//给 video_processing 调用
 	void updata_data(size_t modeIndex, double data); // 
 
 public slots:
-	//void open_camera();
-	//void open_file();
-	//void background_pickup();
-	//void process_start();
-	//void process_end();
-	//void record();
-
-	//void DB_manage();
-
 	void system_set();
-	//void new_monitor();
 	void set_view_default();
 	void about();
 	
-
 private:
 	VideoProcessing* const _video_processing;
-	      SystemSet* const _sys_set;
-	          SysDB* const _sys_db;
-
-	       QTimer* _timer=nullptr;
-public:
-	ImgProcessSet* _img_process_set;
 };
 
 #endif // MAINWINDOW_H

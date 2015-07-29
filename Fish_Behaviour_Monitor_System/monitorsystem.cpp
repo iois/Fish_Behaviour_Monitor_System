@@ -15,9 +15,9 @@ MonitorSystem::MonitorSystem(QWidget *parent)
 
 	_t = new QTimer(this);
 
-	_video_processing = new VideoProcessing(this, _sys_set, _sys_db, _imgp_set);
+	_video_processing = new VideoProcessing(this, _sys_set, _imgp_set);
 
-	_main_window = new MainWindow(0, _video_processing, _t, _sys_set, _sys_db, _imgp_set);
+	_main_window = new MainWindow(0, _video_processing);
 
 	_thread_videoprocessing = new QThread(this);
 	_video_processing->moveToThread(_thread_videoprocessing);
@@ -27,6 +27,13 @@ MonitorSystem::MonitorSystem(QWidget *parent)
 
 	_sms_sender = new SendSMS();
 
+	img_p_set = new ImgProcessSet_view(_imgp_set);
+	// add to mainwindow
+	_main_window->dock_img_process_set->setWidget(img_p_set);
+
+	set_view = SystemSetView_dock::instance(_main_window->dock_set, _sys_set);
+	// add to mainwindow
+	_main_window->dock_set->setWidget(set_view);
 
 	//connect
 	connect( _main_window->opencamera, &QAction::triggered, this, &MonitorSystem::open_camera );
@@ -34,12 +41,13 @@ MonitorSystem::MonitorSystem(QWidget *parent)
 	connect( _main_window->startAct,   &QAction::triggered, this, &MonitorSystem::process_start );
 	connect( _main_window->endAct,     &QAction::triggered, this, &MonitorSystem::process_end );
 	connect( _main_window->recodeAct,  &QAction::triggered, this, &MonitorSystem::record);
+	connect( _main_window->exitAct,    &QAction::triggered, this, &MonitorSystem::exit);
 
 	connect(_main_window->DB_manage_Act, &QAction::triggered, this, &MonitorSystem::show_DB_table);
 
 	connect(_main_window->background_pickup_Act, &QAction::triggered, this, &MonitorSystem::background_pickup);
 
-	connect(_t, &QTimer::timeout, _video_processing, &VideoProcessing::time_out_todo_1);
+	connect(_t, &QTimer::timeout, this, &MonitorSystem::time_out_todo);
 
 	//main_window->showFullScreen();//ÎÞ±ß¿ò£¬×î´ó»¯£¬ÎÞ×îÐ¡»¯×î´ó»¯´°¿Ú
 	_main_window->showMaximized();
@@ -47,9 +55,32 @@ MonitorSystem::MonitorSystem(QWidget *parent)
 
 }
 
+
+
 MonitorSystem::~MonitorSystem()
 {
+	if (_video_Writer.isOpened()){
+		_video_Writer.release();
+	}
 
+	_data_writer_1.close();
+	_data_writer_2.close();
+	_data_writer_3.close();
+}
+
+void MonitorSystem::exit(){
+
+	if (_video_processing){
+		_video_processing->process_end();
+	}
+	SysDB_view* db_view = SysDB_view::instance(0, _sys_db);
+	if (db_view){
+		db_view->close();
+	}
+	if (_main_window){
+		_main_window->close();
+	}
+	this->close();
 }
 
 void MonitorSystem::open_camera(){
@@ -95,7 +126,7 @@ void MonitorSystem::process_start(){
 		_video_processing->process_begin();
 		_t->start(66);
 
-		if (this->_main_window->_img_process_set->get_num_fish() > 1)
+		if (this->_imgp_set->get_num_fish() > 1)
 		{
 			this->_main_window->tabWidget->setCurrentWidget(this->_main_window->data_show_2);
 		}
@@ -106,8 +137,17 @@ void MonitorSystem::process_start(){
 };
 
 void MonitorSystem::process_end(){
-	if (_video_processing){
+	if (_video_processing && _video_processing->_isPrecess){
 		_video_processing->process_end();
+
+		if (_video_Writer.isOpened()){
+			_video_Writer.release();
+		}
+		if (_data_writer_1.is_open()) _data_writer_1.close();
+		if (_data_writer_2.is_open()) _data_writer_2.close();
+		if (_data_writer_3.is_open()) _data_writer_3.close();
+		//todo
+		_sys_db->InsertNewRecord_endtime(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"), _video_id);
 	}
 	this->_main_window->startAct->setEnabled(true);
 	this->_main_window->endAct->setEnabled(false);
@@ -126,7 +166,7 @@ void MonitorSystem::process_end(){
 void MonitorSystem::record()
 {
 	if (this->_video_processing->_isPrecess){
-
+		_isRecord = 1;
 		/*todo：
 		// 当硬盘空间不够的时候，删除一些以前的视频数据
 		QString dir = this->_sys_set->...
@@ -139,30 +179,65 @@ void MonitorSystem::record()
 		ui_remaining_space->setText(tr("剩余空间：<font color='#006600'>%0GB").arg(freeBytesToCaller / 1024.0 / 1024.0 / 1024.0));
 		}
 		*/
-		NewMonitor_dlg *new_monitor_dlg = new NewMonitor_dlg();
-		int res = new_monitor_dlg->exec();
 
-		if (res == QDialog::Accepted){//确定按钮
-			if (_video_processing->record()){
+		{//确定按钮
 
-				this->_main_window->recodeAct->setIcon(QIcon("images/recording.ico"));
-				this->_main_window->statusBar()->showMessage(tr("正在记录视频与数据"));
+			QString current_date = QDateTime::currentDateTime().toString("yyyyMMddhhmm");
 
-				this->_main_window->dock_set->setEnabled(false);
-				this->_main_window->dock_img_process_set->setEnabled(false);
-				this->_main_window->_img_process_set->save_all_data();
+			this->_video_id = current_date;
 
-				this->_main_window->startAct->setEnabled(false);
-				this->_main_window->recodeAct->setEnabled(false);
+			QString new_datafile_name = _sys_set->get_file_save_path() + '/' + current_date;
+
+			QString new_video_name = new_datafile_name + ".avi";
+
+			if (  _video_Writer.open(new_video_name.toStdString(),
+				                     _codec,
+                                     _fps,
+				                     _video_processing->get_original_img().size(),
+				                     1
+				                    )
+				){
+				if (_imgp_set->get_num_fish() == 1){
+					_data_writer_1.open((new_datafile_name + "_1.txt").toStdString());
+					_data_writer_2.open((new_datafile_name + "_2.txt").toStdString());
+				}
+				else if (_imgp_set->get_num_fish() > 1)
+				{
+					_data_writer_3.open((new_datafile_name + "_3.txt").toStdString());
+				}
 			}
+			else{
+				QMessageBox::information(nullptr, tr("警告"), tr("无法保存视频!"));
+			}
+
+			_sys_db->InsertNewRecord(
+				_video_id,
+				_sys_set->get_file_save_path(),
+				_imgp_set->get_num_fish(),
+				QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"),
+				""/*remark*/);
+
+
+
+			this->_main_window->recodeAct->setIcon(QIcon("images/recording.ico"));
+			this->_main_window->statusBar()->showMessage(tr("正在记录视频与数据"));
+
+			this->_main_window->dock_set->setEnabled(false);
+			this->_main_window->dock_img_process_set->setEnabled(false);
+
+			this->_imgp_set->save_all_data();
+
+			this->_main_window->startAct->setEnabled(false);
+			this->_main_window->recodeAct->setEnabled(false);
+
 		}
 	}
 }
 
-
 void MonitorSystem::show_DB_table()
 {
-	SysDB_view* db_view = SysDB_view::instance(this, _sys_db);
+	qDebug() << "db_view";
+	SysDB_view* db_view = SysDB_view::instance(0, _sys_db);
 	db_view->show();
 }
 
@@ -181,4 +256,53 @@ void MonitorSystem::background_pickup(){
 
 	//this->opencamera->setEnabled(false);
 	//startAct->setEnabled(true);
+}
+
+
+void MonitorSystem::time_out_todo(){
+
+	//todo
+	_video_processing->time_out_todo_1();
+	if (_isRecord){
+		if (_video_Writer.isOpened()){
+			this->save_video();//保存视频
+		}
+		else
+		{
+			this->_main_window->statusBar()->showMessage(tr("无法保存视频"));
+		}
+	}
+}
+
+void MonitorSystem::save_video(){
+	if (!_video_processing)
+	{
+	}
+	if (_num_of_frames_recoded > 15 * 60 * 60 * 24){ //15*60*60*24 one day
+		_video_Writer.release();
+		_num_of_frames_recoded = 0;
+
+		int storage = get_remain_storage(this->_sys_set->get_file_save_path());
+
+		if (storage < 5){  //5:硬盘剩余空间小于5G
+			// 删除最早的文件
+			QString file_del = this->_sys_db->get_del_file_name();
+			if (!file_del.isEmpty()){
+				QFile fileTemp(file_del);
+				fileTemp.remove();
+			}
+		}
+
+		QString current_date = QDateTime::currentDateTime().toString("yyyyMMddhhmm");
+
+		QString _video_id = current_date;
+
+		QString new_datafile_name = _sys_set->get_file_save_path() + '/' + current_date;
+
+		this->record();
+	}
+	else{
+		_video_Writer << _video_processing->get_original_img();
+		++_num_of_frames_recoded;
+	}
 }

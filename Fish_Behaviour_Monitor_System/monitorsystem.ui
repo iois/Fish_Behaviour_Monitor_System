@@ -1,25 +1,35 @@
-<UI version="4.0" >
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
  <class>MonitorSystemClass</class>
- <widget class="QWidget" name="MonitorSystemClass" >
-  <property name="objectName" >
-   <string notr="true">MonitorSystemClass</string>
-  </property>
-  <property name="geometry" >
+ <widget class="QWidget" name="MonitorSystemClass">
+  <property name="geometry">
    <rect>
-	<x>0</x>
-	<y>0</y>
-	<width>600</width>
-	<height>400</height>
+    <x>0</x>
+    <y>0</y>
+    <width>600</width>
+    <height>400</height>
    </rect>
   </property>
-  <property name="windowTitle" >
+  <property name="windowTitle">
    <string>MonitorSystem</string>
   </property>
+  <widget class="QPushButton" name="pushButton">
+   <property name="geometry">
+    <rect>
+     <x>170</x>
+     <y>140</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>PushButton</string>
+   </property>
+  </widget>
  </widget>
- <layoutDefault spacing="6" margin="11" />
- <pixmapfunction></pixmapfunction>
+ <layoutdefault spacing="6" margin="11"/>
  <resources>
-   <include location="monitorsystem.qrc"/>
+  <include location="monitorsystem.qrc"/>
  </resources>
  <connections/>
-</UI>
+</ui>

@@ -1,13 +1,9 @@
 #include "mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent, VideoProcessing *vp, QTimer *_t, SystemSet* sys_set, SysDB* sys_db, ImgProcessSet* imgset)
-	: QMainWindow(parent), _video_processing(vp), _timer(_t), _sys_set(sys_set), _sys_db(sys_db), _img_process_set(imgset)
+MainWindow::MainWindow(QWidget *parent, VideoProcessing *vp)
+//, QTimer *_t, SystemSet* sys_set, SysDB* sys_db, ImgProcessSet* imgset
+	: QMainWindow(parent), _video_processing(vp)
 {
-	if (!_timer){
-		_timer = new QTimer(this);
-	}
-
-	//ui_img_view = new ImgShowWidget_opencv(this);
 	ui_img_view = new ImgShowWidget_Mat(this);
 	ui_img_view->set_size(QSize(320 * 1.5,240 * 1.5));
 
@@ -116,16 +112,11 @@ void MainWindow::setupUi()
 	//dock 
 	dock_img_process_set=new QDockWidget(tr("视频处理设置"), this);
 	dock_img_process_set->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-	ImgProcessSet_view *img_p_set = new ImgProcessSet_view(_img_process_set);
-	dock_img_process_set->setWidget(img_p_set);
 	this->addDockWidget(Qt::LeftDockWidgetArea, dock_img_process_set);
 
 	//dock window system set
 	dock_set = new QDockWidget(tr("系统设置"), this);
 	dock_set->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-	SystemSetView_dock *set_view = SystemSetView_dock::instance(dock_set, _sys_set);
-
-	dock_set->setWidget(set_view);
 	this->addDockWidget(Qt::LeftDockWidgetArea, dock_set);
 	dock_set->setMinimumWidth(200);
 }
@@ -153,7 +144,7 @@ void MainWindow::createActions()
 
 	exitAct = new QAction(QIcon("images/Exit.ico"), tr("&退出"), this);
 	exitAct->setStatusTip(tr("退出"));
-	connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
+	//connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
 
 	background_pickup_Act = new QAction(QIcon("images/background_pickup.png"), tr("&背景提取"), this);
 	background_pickup_Act->setStatusTip(tr("背景提取"));
@@ -271,74 +262,6 @@ void MainWindow::about()
 	msgBox.exec();
 }
 
-// slots
-/*
-void MainWindow::open_camera(){
-	if (!this->_video_processing->open_camera()){
-		QMessageBox::information(this, tr("Information"), tr("Can notopen the camera !"));
-	}
-	_timer->start(66);
-	this->opencamera->setEnabled(false);
-	startAct->setEnabled(true);
-}
-*/
-/*
-void MainWindow::open_file()
-{
-	QString path = QFileDialog::getOpenFileName(this, tr("打开视频文件"), ".", tr("(*.avi)"));
-
-	if (path.isEmpty()){
-		QMessageBox::information(this, tr("Information"), tr("Can Not Open The File !"));
-	}
-	else
-	{
-		char*  ch;
-		QByteArray ba = path.toLatin1();
-		ch = ba.data();
-		this->_video_processing->open_file(ch);
-		_timer->start(66);
-
-		this->openfile->setEnabled(false);
-		this->opencamera->setEnabled(false);
-		startAct->setEnabled(true);
-
-		_timer->stop();
-	}
-}
-*/
-/*
-void MainWindow::process_start(){
-
-	if (_video_processing){
-		_video_processing->process_begin();
-		_timer->start(66);
-
-		if (_img_process_set->get_num_fish() > 1)
-		{
-			tabWidget->setCurrentWidget(data_show_2);
-		}
-	}
-	startAct->setEnabled(false);
-	recodeAct->setEnabled(true);
-	endAct->setEnabled(true);
-};
-*/
-/*
-void MainWindow::process_end(){
-	if (_video_processing){
-		_video_processing->process_end();
-	}
-	startAct->setEnabled(true);
-	endAct->setEnabled(false);
-	recodeAct->setIcon(QIcon("images/record.ico"));
-
-	startAct->setEnabled(true);
-	recodeAct->setEnabled(true);
-
-	dock_set->setEnabled(true);
-	dock_img_process_set->setEnabled(true);
-}
-*/
 void MainWindow::system_set(){
 	if (dock_set)
 	{
@@ -349,51 +272,6 @@ void MainWindow::system_set(){
 		dock_img_process_set->show();
 	}
 };
-
-/*
-void MainWindow::DB_manage()
-{
-	SysDB_view* db_view = SysDB_view::instance(0, _sys_db);
-	db_view->show();
-}*/
-/*
-void MainWindow::record()
-{
-	if (this->_video_processing->_isPrecess){
-
-		/*todo：
-		// 当硬盘空间不够的时候，删除一些以前的视频数据
-		QString dir = this->_sys_set->...
-		unsigned long long freeBytesToCaller = 0, totalBytes = 0, freeBytes = 0;
-		bool b;
-		b = GetDiskFreeSpaceEx(QString(dir[0] + ":/").toStdWString().c_str(), (PULARGE_INTEGER)&freeBytesToCaller,
-			(PULARGE_INTEGER)&totalBytes, (PULARGE_INTEGER)&freeBytes);
-
-		if (b){
-			ui_remaining_space->setText(tr("剩余空间：<font color='#006600'>%0GB").arg(freeBytesToCaller / 1024.0 / 1024.0 / 1024.0));
-		}
-		*/
-/*
-		NewMonitor_dlg *new_monitor_dlg = new NewMonitor_dlg();
-		int res = new_monitor_dlg->exec();
-
-		if (res == QDialog::Accepted){//确定按钮
-			if (_video_processing->record()){
-
-				recodeAct->setIcon(QIcon("images/recording.ico"));
-				statusBar()->showMessage(tr("正在记录视频与数据"));
-
-				dock_set->setEnabled(false);
-				dock_img_process_set->setEnabled(false);
-				_img_process_set->save_all_data();
-
-				startAct->setEnabled(false);
-				recodeAct->setEnabled(false);
-			}
-		}
-	}
-}
-*/
 
 void MainWindow::set_view_default()
 {
@@ -406,23 +284,3 @@ void MainWindow::set_view_default()
 		dock_img_process_set->show();
 	}
 }
-
-/*
-// 提取背景 -> return cv::Mat@bakground
-// 前提：摄像头打开 open_camera()
-void MainWindow::background_pickup(){
-	LoadingDialog *loading_dialog = new LoadingDialog(0, tr("背景提取中..."));
-	QThread* thread = new QThread;
-	loading_dialog->moveToThread(thread);
-
-	connect(this->_video_processing, &VideoProcessing::background_pickup_done, loading_dialog, &LoadingDialog::close);
-
-	thread->start();
-	loading_dialog->exec();
-
-	this->_video_processing->background_pickup();
-
-	//this->opencamera->setEnabled(false);
-	//startAct->setEnabled(true);
-}
-*/

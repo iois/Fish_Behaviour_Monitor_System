@@ -1,6 +1,6 @@
 #include "ImgProcessSet.h"
 
-ImgProcessSet::ImgProcessSet()
+ImgProcessSet::ImgProcessSet() :_segment_threshold(25)
 {
 	QSettings settings("Resources/ImgProcessSet.ini", QSettings::IniFormat); // 当前目录的INI文件
 

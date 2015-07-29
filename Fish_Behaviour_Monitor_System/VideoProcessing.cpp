@@ -5,7 +5,7 @@
 int element_shape = cv::MORPH_RECT;
 
 // ¿ª±ÕÔËËã
-static void OpenClose(cv::Mat &src, cv::Mat &dst, int n=6-10)
+static void OpenClose(cv::Mat &src, cv::Mat &dst, int n=-1)
 {
 	int an = n > 0 ? n : -n;
 	cv::Mat element = cv::getStructuringElement(element_shape, cv::Size(an * 2 + 1, an * 2 + 1), cv::Point(an, an));
@@ -25,7 +25,8 @@ static void ErodeDilate(cv::Mat &src, cv::Mat &dst, int n = 9 - 10)
 		dilate(src, dst, element);
 }
 
-cv::Mat get_contours_colors(cv::Mat &src,cv::Mat background){
+//¶þÖµ»¯£¬get mat(rgb) from ÒÑ¾­¼ô¹ý±³¾°µÄÍ¼Æ¬ by color
+cv::Mat get_contours_colors(const cv::Mat &src,int color_threshold){
 	cv::Mat dst;
 	src.copyTo(dst);
 
@@ -41,7 +42,7 @@ cv::Mat get_contours_colors(cv::Mat &src,cv::Mat background){
 			int r1 = bgr[2];//R
 
 			// ¸ù¾ÝÑÕÉ«Í¨µÀÐÅÏ¢ÅÐ¶ÏÄ¿±ê
-			if ((0<=r1) && (r1<30) && (0<=g1) && (g1<30) && (0<=b1) && (b1<30))
+			if ((0 <= r1) && (r1<color_threshold) && (0 <= g1) && (g1<color_threshold) && (0 <= b1) && (b1<color_threshold))
 			{
 				dst.at<cv::Vec3b>(k, l)[0] = 0;
 				dst.at<cv::Vec3b>(k, l)[1] = 0;
@@ -58,8 +59,11 @@ cv::Mat get_contours_colors(cv::Mat &src,cv::Mat background){
 	return dst;
 }
 
-VideoProcessing::VideoProcessing(QObject *parent, SystemSet *set, SysDB* sys_db, ImgProcessSet  *img_p_set)
-	:QObject(parent), _fps(15), _codec(CV_FOURCC('D', 'I', 'V', 'X')), _sys_set(set), _sys_db(sys_db), _img_process_set(img_p_set)
+//==========================================================================
+
+
+VideoProcessing::VideoProcessing(QObject *parent, SystemSet *set, ImgProcessSet  *img_p_set)
+	:QObject(parent), _sys_set(set), _img_process_set(img_p_set)
 {
 	_mode_processing = new Speedmode_processing(img_p_set);
 	//todo:2015-07-22-11:21
@@ -74,13 +78,7 @@ void VideoProcessing::attach(MainWindow *Object)
 
 VideoProcessing::~VideoProcessing()
 {
-	if (_video_Writer.isOpened()){
-		_video_Writer.release();
-	}
 
-	_data_writer_1.close();
-	_data_writer_2.close();
-	_data_writer_3.close();
 }
 
 IplImage* VideoProcessing::ImgProcessing(IplImage *src, IplImage *dst, IplImage *img_draw)
@@ -117,26 +115,26 @@ cv::Mat VideoProcessing::ImgProcessing(cv::Mat &src, cv::Mat &dst, cv::Mat &img_
 	*/
 	if (!_background.empty())
 	{
-		src = src - _background;
+		src = abs(src - _background);
 	}
 	
 	cv::imshow("Display Image3", src);
 
-	cv::Mat temp=get_contours_colors(src, src);
+	cv::Mat temp = get_contours_colors(src, _img_process_set->get_segment_threshold());
+
 	cvtColor(temp, dst, CV_BGR2GRAY);  // ²ÊÉ«Í¼Ïñ×ª»¯³É»Ò¶ÈÍ¼Ïñ
 
-	GaussianBlur(dst, dst, cv::Size(5,5), 0, 0); //¸ßË¹ÂË²¨
+	GaussianBlur(dst, dst, cv::Size(3,3), 0, 0); //¸ßË¹ÂË²¨
 
-	
 	//bitwise_xor(cv::Scalar(255, 0, 0, 0), dst, dst);//xor,ÑÕÉ«È¡·´
 
 
 	// Í¼Æ¬ ãÐÖµ·Ö¸î
 	//dst = dst - _background;
 	//threshold(dst, dst, _img_process_set->get_segment_threshold(), 255, 0);//ãÐÖµ·Ö¸î
-	
-	//OpenClose(dst, dst);
 	//ErodeDilate(dst, dst);
+	//OpenClose(dst, dst);
+	
 
 	bitwise_xor(cv::Scalar(255, 0, 0, 0), dst, dst);//xor,ÑÕÉ«È¡·´
 
@@ -156,7 +154,6 @@ bool VideoProcessing::open_camera()
 	} else {
 		_cap >> _frame;
 		CvSize img_size = _frame.size();
-		//cvtColor(_frame, _p_temp, CV_BGR2GRAY);
 		return true;
 	}
 }
@@ -187,9 +184,6 @@ bool VideoProcessing::open_file(const std::string &file_name){
 	else {
 		_cap >> _frame;
 		CvSize img_size = _frame.size();
-		//cvtColor(_frame, _p_temp, CV_BGR2GRAY);
-
-		//ImgProcessing(_frame, _p_temp, _frame);
 		this->notify();
 		return true;
 	}
@@ -206,6 +200,10 @@ void VideoProcessing::time_out_todo_1()
 	//´ÓCvCaptureÖÐ»ñµÃÒ»Ö¡
 	_cap >> _frame;
 	{
+
+		++_num_of_frames;
+		this->notify();
+
 		// Èç¹û¿ªÊ¼´¦Àí
 		if (_isPrecess)
 		{
@@ -216,6 +214,9 @@ void VideoProcessing::time_out_todo_1()
 				double wp = _mode_processing_wp->execute(_p_temp, _frame, _img_process_set->get_min_area());
 				send_data(1, speed / (640 / this->_sys_set->get_realLength()));
 				send_data(2, wp);
+
+				emit send_data_signal(1, speed);
+				emit send_data_signal(2, wp);
 				
 			}
 			else if (_img_process_set->get_num_fish() > 1)
@@ -224,20 +225,6 @@ void VideoProcessing::time_out_todo_1()
 				send_data(3, r);
 			}
 		}
-		// Èç¹û¿ªÊ¼¼ÇÂ¼
-		if (_isRecord)
-		{
-			if (_video_Writer.isOpened()){
-				save_video();//±£´æÊÓÆµ
-			}
-			else
-			{
-				this->_main_window->statusBar()->showMessage(tr("ÎÞ·¨±£´æÊÓÆµ"));
-			}
-		}
-
-		++_num_of_frames;
-		this->notify();
 	}
 }
 
@@ -248,7 +235,6 @@ void VideoProcessing::notify()// Í¼Ïñ »ò Êý¾Ý ¸Ä±äÁË£¬Ïò¹Û²ìÕßmainwindow ·¢³öÍ¨Ö
 		_main_window->updata_img(_frame);
 	}
 }
-
 
 void VideoProcessing::send_data(size_t modeIndex, double data){
 	static double speed = 0;
@@ -265,6 +251,7 @@ void VideoProcessing::send_data(size_t modeIndex, double data){
 
 	QString current_date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
 
+	/*
 	switch (modeIndex)
 	{
 	case 1: // ËÙ¶È
@@ -293,10 +280,11 @@ void VideoProcessing::send_data(size_t modeIndex, double data){
 		}
 		break;
 	}
+	
 	case 2: //
 	{
 		if (_num_of_frames % 15 == 0){
-			_main_window->updata_data(2/*modeIndex*/, wp_count);
+			_main_window->updata_data(2, wp_count);
 
 			if (_isRecord){
 				_data_writer_2 << (wp_count) << std::endl;	// Êý¾ÝÐ´Èë¶ÔÓ¦ÎÄ¼þÖÐ
@@ -356,53 +344,17 @@ void VideoProcessing::send_data(size_t modeIndex, double data){
 	default:
 		break;
 	}
+	*/
 }
 
-inline bool VideoProcessing::save_video(){
-	if (_frame.empty())
-	{
-		return false;
-	}
-	if (_num_of_frames_recoded > 15*60*60*24 ){ //15*60*60*24 one day
-		_video_Writer.release();
-		_num_of_frames_recoded = 0;
-
-		int storage = get_remain_storage(this->_sys_set->get_file_save_path());
-
-		if (storage < 5){  //5:Ó²ÅÌÊ£Óà¿Õ¼äÐ¡ÓÚ5G
-			// É¾³ý×îÔçµÄÎÄ¼þ
-			QString file_del = this->_sys_db->get_del_file_name();
-			if (!file_del.isEmpty()){
-				QFile fileTemp(file_del);
-				fileTemp.remove();
-			}
-		}
-
-		this->record();
-	}
-	else{
-		_video_Writer << _frame;
-		++_num_of_frames_recoded;
-	}
-	return true;
-}
 
 void VideoProcessing::process_end()
 {
-	if (this->_capture){
-		_isPrecess = 0;
-		_isRecord = 0;
+	if (_isPrecess){
+		if (this->_capture){
+			_isPrecess = 0;
+		}
 	}
-
-	_data_writer_1.close();
-	_data_writer_2.close();
-	_data_writer_3.close();
-
-
-	if (_video_Writer.isOpened()){
-		_video_Writer.release();
-	}
-	_sys_db->InsertNewRecord_endtime(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"), _video_id);
 }
 
 void VideoProcessing::process_begin()
@@ -413,85 +365,54 @@ void VideoProcessing::process_begin()
 	}
 }
 
-bool VideoProcessing::record(){
-	if (_isPrecess){
-
-		_isRecord = 1;
-		QString current_date = QDateTime::currentDateTime().toString("yyyyMMddhhmm");
-
-		_video_id = current_date;
-
-		QString new_video_name = _sys_set->get_file_save_path() + '/' + current_date + ".avi";
-		QString new_datafile_name = _sys_set->get_file_save_path() + '/' + current_date;
-
-		if (_sys_db->InsertNewRecord(
-			_video_id,
-			_sys_set->get_file_save_path(),
-			_img_process_set->get_num_fish(),
-			QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"),
-			""/*remark*/))
-		{
-			_num_of_frames = 1;
-			if (_video_Writer.open(new_video_name.toStdString(), _codec, _fps, _frame.size(), 1)){
-				if (_img_process_set->get_num_fish() == 1){
-					_data_writer_1.open((new_datafile_name + "_1.txt").toStdString());
-					_data_writer_2.open((new_datafile_name + "_2.txt").toStdString());
-				}
-				else if (_img_process_set->get_num_fish() > 1)
-				{
-					_data_writer_3.open((new_datafile_name + "_3.txt").toStdString());
-				}
-				return true;
-			}
-			else{
-				QMessageBox::information(nullptr, tr("¾¯¸æ"), tr("ÎÞ·¨±£´æÊÓÆµ!"));
-			}
-		}
-	}
-	return false;
-}
-
 cv::Mat VideoProcessing::background_pickup(){
-	_cap >> _frame;
-	//cvtColor(_frame, temp, CV_BGR2GRAY);  // ²ÊÉ«Í¼Ïñ×ª»¯³É»Ò¶ÈÍ¼Ïñ
-	cv::Mat background(_frame);
-	for (size_t i = 0; i < 15; ++i)
-	{
-		_cap >> _frame;
-		if (i % 5 == 0)
-		{
-			int height1 = _frame.size().height;
-			int width1 = _frame.size().width;
-			for (int k = 0; k < height1; k++)
-			{
-				for (int l = 0; l < width1; l++)
-				{
-					const cv::Vec3b& bgr = _frame.at<cv::Vec3b>(k, l);
-					int b1 = bgr[0];//B
-					int g1 = bgr[1];//G
-					int r1 = bgr[2];//R
-					cv::Vec3b& bgr2 = background.at<cv::Vec3b>(k, l);
-					int b2 = bgr2[0];//B
-					int g2 = bgr2[1];//G
-					int r2 = bgr2[2];//R
 
-					if (abs(b1 - b2) > 10 && abs(g1 - g2) > 10 && abs(g1 - g2) > 10){
-						bgr2[0] = (b1 + bgr2[0])/2;
-						bgr2[1] = (g1 + bgr2[1]);
-						bgr2[2] = (r1 + bgr2[2]);
+	cv::Mat background;
+	
+	if (_cap.isOpened()){
+		_cap >> _frame;
+		//cvtColor(_frame, temp, CV_BGR2GRAY);  // ²ÊÉ«Í¼Ïñ×ª»¯³É»Ò¶ÈÍ¼Ïñ
+		_frame.copyTo(background);
+		for (size_t i = 0; i < 15; ++i)
+		{
+			_cap >> _frame;
+			if (i % 5 == 0)
+			{
+				int height1 = _frame.size().height;
+				int width1 = _frame.size().width;
+				for (int k = 0; k < height1; k++)
+				{
+					for (int l = 0; l < width1; l++)
+					{
+						const cv::Vec3b& bgr = _frame.at<cv::Vec3b>(k, l);
+						int b1 = bgr[0];//B
+						int g1 = bgr[1];//G
+						int r1 = bgr[2];//R
+						cv::Vec3b& bgr2 = background.at<cv::Vec3b>(k, l);
+						int b2 = bgr2[0];//B
+						int g2 = bgr2[1];//G
+						int r2 = bgr2[2];//R
+
+						if (abs(b1 - b2) > 10 && abs(g1 - g2) > 10 && abs(g1 - g2) > 10){
+							bgr2[0] = (b1 + bgr2[0]) / 2;
+							bgr2[1] = (g1 + bgr2[1]);
+							bgr2[2] = (r1 + bgr2[2]);
+						}
 					}
 				}
-			}
-			/*
+				/*
 				cvtColor(_frame, temp, CV_BGR2GRAY);  // ²ÊÉ«Í¼Ïñ×ª»¯³É»Ò¶ÈÍ¼Ïñ
 				{
 				background = background*0.95 + _frame*0.05;
 				}
 				*/
+			}
 		}
+		background.copyTo(this->_background);
+		cv::imwrite("background.bmp", background);
+		emit background_pickup_done();
 	}
-	background.copyTo(this->_background);
-	cv::imwrite("background.bmp", background);
-	emit background_pickup_done();
+	else{}
+
 	return background;
 }

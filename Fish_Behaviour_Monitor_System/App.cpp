@@ -10,8 +10,8 @@ App::App()
 
 	_t = new QTimer(this);
 
-	_video_processing = new VideoProcessing(this, _sys_set, _sys_db, _imgp_set);
-	_main_window = new MainWindow(0, _video_processing, _t, _sys_set, _sys_db, _imgp_set);
+	_video_processing = new VideoProcessing(this, _sys_set, _imgp_set);
+	_main_window = new MainWindow(0, _video_processing);//, _t, _sys_set, _sys_db, _imgp_set
 
 	_thread_videoprocessing = new QThread(this);
 	_video_processing->moveToThread(_thread_videoprocessing);
