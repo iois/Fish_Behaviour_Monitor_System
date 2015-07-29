@@ -141,11 +141,11 @@ void MainWindow::createActions()
 {
 	opencamera = new QAction(QIcon("images/open_camera.ico"), tr("&打开摄像头"), this);
 	opencamera->setStatusTip(tr("打开摄像头"));
-	connect(opencamera, SIGNAL(triggered()), this, SLOT(open_camera()));
+	//connect(opencamera, SIGNAL(triggered()), this, SLOT(open_camera()));
 
 	openfile = new QAction(QIcon("images/open_file.ico"), tr("&打开视频文件..."), this);
 	openfile->setStatusTip(tr("打开已有视频文件"));
-	connect(openfile, SIGNAL(triggered()), this, SLOT(open_file()));
+	//connect(openfile, SIGNAL(triggered()), this, SLOT(open_file()));
 
 	aboutAct = new QAction(QIcon("images/about.ico"), tr("&关于"), this);
 	aboutAct->setStatusTip(tr("显示此应用“关于”窗口"));
@@ -157,11 +157,11 @@ void MainWindow::createActions()
 
 	background_pickup_Act = new QAction(QIcon("images/background_pickup.png"), tr("&背景提取"), this);
 	background_pickup_Act->setStatusTip(tr("背景提取"));
-	connect(background_pickup_Act, SIGNAL(triggered()), this, SLOT(background_pickup()));
+	//connect(background_pickup_Act, SIGNAL(triggered()), this, SLOT(background_pickup()));
 
 	startAct = new QAction(QIcon("images/start.ico"), tr("&开始处理"), this);
 	startAct->setStatusTip(tr("开始处理"));
-	connect(startAct, SIGNAL(triggered()), this, SLOT(process_start()));
+	//connect(startAct, SIGNAL(triggered()), this, SLOT(process_start()));
 	startAct->setEnabled(false);
 
 	setviewdefaultAct = new QAction(tr("&设置默认窗口"), this);
@@ -177,17 +177,17 @@ void MainWindow::createActions()
 
 	DB_manage_Act = new QAction(QIcon("images/DB.ico"), tr("&数据库管理"), this);
 	DB_manage_Act->setStatusTip(tr("数据库管理"));
-	connect(DB_manage_Act, SIGNAL(triggered()), this, SLOT(DB_manage()));
+	//connect(DB_manage_Act, SIGNAL(triggered()), this, SLOT(DB_manage()));
 
 
 	endAct = new QAction(QIcon("images/end.ico"), tr("&结束处理"), this);
 	endAct->setStatusTip(tr("结束处理"));
-	connect(endAct, SIGNAL(triggered()), this, SLOT(process_end()));
+	//connect(endAct, SIGNAL(triggered()), this, SLOT(process_end()));
 	//endAct->setEnabled(false);
 
 	recodeAct = new QAction(QIcon("images/record.ico"), tr("&开始记录"), this);
 	recodeAct->setStatusTip(tr("记录"));
-	connect(recodeAct, SIGNAL(triggered()), this, SLOT(record()));
+	//connect(recodeAct, SIGNAL(triggered()), this, SLOT(record()));
 }
 
 // [4]
@@ -272,6 +272,7 @@ void MainWindow::about()
 }
 
 // slots
+/*
 void MainWindow::open_camera(){
 	if (!this->_video_processing->open_camera()){
 		QMessageBox::information(this, tr("Information"), tr("Can notopen the camera !"));
@@ -280,7 +281,8 @@ void MainWindow::open_camera(){
 	this->opencamera->setEnabled(false);
 	startAct->setEnabled(true);
 }
-
+*/
+/*
 void MainWindow::open_file()
 {
 	QString path = QFileDialog::getOpenFileName(this, tr("打开视频文件"), ".", tr("(*.avi)"));
@@ -303,7 +305,8 @@ void MainWindow::open_file()
 		_timer->stop();
 	}
 }
-
+*/
+/*
 void MainWindow::process_start(){
 
 	if (_video_processing){
@@ -319,7 +322,8 @@ void MainWindow::process_start(){
 	recodeAct->setEnabled(true);
 	endAct->setEnabled(true);
 };
-
+*/
+/*
 void MainWindow::process_end(){
 	if (_video_processing){
 		_video_processing->process_end();
@@ -334,7 +338,7 @@ void MainWindow::process_end(){
 	dock_set->setEnabled(true);
 	dock_img_process_set->setEnabled(true);
 }
-
+*/
 void MainWindow::system_set(){
 	if (dock_set)
 	{
@@ -346,12 +350,13 @@ void MainWindow::system_set(){
 	}
 };
 
+/*
 void MainWindow::DB_manage()
 {
 	SysDB_view* db_view = SysDB_view::instance(0, _sys_db);
 	db_view->show();
-}
-
+}*/
+/*
 void MainWindow::record()
 {
 	if (this->_video_processing->_isPrecess){
@@ -368,6 +373,7 @@ void MainWindow::record()
 			ui_remaining_space->setText(tr("剩余空间：<font color='#006600'>%0GB").arg(freeBytesToCaller / 1024.0 / 1024.0 / 1024.0));
 		}
 		*/
+/*
 		NewMonitor_dlg *new_monitor_dlg = new NewMonitor_dlg();
 		int res = new_monitor_dlg->exec();
 
@@ -387,6 +393,7 @@ void MainWindow::record()
 		}
 	}
 }
+*/
 
 void MainWindow::set_view_default()
 {
@@ -400,6 +407,7 @@ void MainWindow::set_view_default()
 	}
 }
 
+/*
 // 提取背景 -> return cv::Mat@bakground
 // 前提：摄像头打开 open_camera()
 void MainWindow::background_pickup(){
@@ -417,3 +425,4 @@ void MainWindow::background_pickup(){
 	//this->opencamera->setEnabled(false);
 	//startAct->setEnabled(true);
 }
+*/

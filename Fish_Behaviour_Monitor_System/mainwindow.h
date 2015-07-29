@@ -34,7 +34,7 @@ public:
 	MainWindow(QWidget *parent = 0, VideoProcessing *vp = 0, QTimer *t = 0, SystemSet* sys_set = 0, SysDB* sys_db = 0, ImgProcessSet* imgset=0);
 	~MainWindow();
 
-private:
+public:
 	// Action
 	void createActions();
 	//QAction *newMonitor;
@@ -49,7 +49,7 @@ private:
 	QAction *DB_manage_Act;
 	QAction *aboutAct;
 	QAction *exitAct;
-
+private:
 	// Menu
 	void createMenus();
 	QMenu *fileMenu;
@@ -76,12 +76,13 @@ private:
 public:
 	WarningViewWidget *ui_warning_view;
 
-private:	
+
 	QTabWidget *tabWidget;//data show 
+
 	QWidget *data_show_1;
 	QWidget *data_show_2;
 	QWidget *data_show_3;
-
+private:	
 	DataShowWidget *ui_data_view_1;//速度
 	DataShowWidget *ui_data_view_2;//尾频
 	DataShowWidget *ui_data_view_3;//群聚半径
@@ -91,6 +92,7 @@ private:
 	DataShowWidget *ui_data_view_8;//半死亡数
 	DataShowWidget *ui_data_view_9;//死亡条数
 
+public:
 	QDockWidget *dock_set;
 	QDockWidget *dock_img_process_set;
 
@@ -100,14 +102,14 @@ public:	//给 video_processing 调用
 	void updata_data(size_t modeIndex, double data); // 
 
 public slots:
-	void open_camera();
-	void open_file();
-	void background_pickup();
-	void process_start();
-	void process_end();
-	void record();
+	//void open_camera();
+	//void open_file();
+	//void background_pickup();
+	//void process_start();
+	//void process_end();
+	//void record();
 
-	void DB_manage();
+	//void DB_manage();
 
 	void system_set();
 	//void new_monitor();
@@ -121,6 +123,7 @@ private:
 	          SysDB* const _sys_db;
 
 	       QTimer* _timer=nullptr;
+public:
 	ImgProcessSet* _img_process_set;
 };
 

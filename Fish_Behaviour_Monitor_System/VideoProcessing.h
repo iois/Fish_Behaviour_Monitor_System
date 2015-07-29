@@ -43,8 +43,12 @@ private:
 
 public:
 	bool open_file(const char* file_name);//0
+	bool open_file(const std::string &file_name);//0
 	bool open_camera();                   //0 打开摄像头，一直获取原始图像，直到开始处理
-	cv::Mat background_pickup();  //提取背景
+
+	
+	//提取背景 ,返回背景RGB
+	cv::Mat background_pickup();  
 signals:
 	void background_pickup_done();
 

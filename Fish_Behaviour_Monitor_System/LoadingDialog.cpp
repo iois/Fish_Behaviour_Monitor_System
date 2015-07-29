@@ -19,7 +19,7 @@ LoadingDialog::LoadingDialog(QDialog *parent, QString text) :QDialog(parent)
 
 	label->setContentsMargins(0, 0, 0, 0);
 
-	movie = new QMovie("loading.gif");
+	movie = new QMovie("images/loading.gif");
 	label->setMovie(movie);
 	movie->start();
 	label_2->setText(text);

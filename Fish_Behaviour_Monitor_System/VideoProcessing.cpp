@@ -115,8 +115,11 @@ cv::Mat VideoProcessing::ImgProcessing(cv::Mat &src, cv::Mat &dst, cv::Mat &img_
 		cvtColor(src, dst, CV_BGR2GRAY);  // 彩色图像转化成灰度图像
 	}
 	*/
-
-	src = src - _background;
+	if (!_background.empty())
+	{
+		src = src - _background;
+	}
+	
 	cv::imshow("Display Image3", src);
 
 	cv::Mat temp=get_contours_colors(src, src);
@@ -153,7 +156,7 @@ bool VideoProcessing::open_camera()
 	} else {
 		_cap >> _frame;
 		CvSize img_size = _frame.size();
-		cvtColor(_frame, _p_temp, CV_BGR2GRAY);
+		//cvtColor(_frame, _p_temp, CV_BGR2GRAY);
 		return true;
 	}
 }
@@ -162,14 +165,31 @@ bool VideoProcessing::open_file(const char* file_name)
 {
 	//_video_file_name = file_name;
 	_cap.open(file_name);
+	qDebug() << file_name;
 	if (!_cap.isOpened()){
 		return false;
 	} else {
 		_cap >> _frame;
 		CvSize img_size = _frame.size();
-		cvtColor(_frame, _p_temp, CV_BGR2GRAY);
+		//cvtColor(_frame, _p_temp, CV_BGR2GRAY);
 
-		ImgProcessing(_frame, _p_temp, _frame);
+		//ImgProcessing(_frame, _p_temp, _frame);
+		this->notify();
+		return true;
+	}
+}
+
+bool VideoProcessing::open_file(const std::string &file_name){
+	_cap.open(file_name);
+	if (!_cap.isOpened()){
+		return false;
+	}
+	else {
+		_cap >> _frame;
+		CvSize img_size = _frame.size();
+		//cvtColor(_frame, _p_temp, CV_BGR2GRAY);
+
+		//ImgProcessing(_frame, _p_temp, _frame);
 		this->notify();
 		return true;
 	}
@@ -431,7 +451,6 @@ bool VideoProcessing::record(){
 	return false;
 }
 
-//提取背景
 cv::Mat VideoProcessing::background_pickup(){
 	_cap >> _frame;
 	//cvtColor(_frame, temp, CV_BGR2GRAY);  // 彩色图像转化成灰度图像
@@ -457,9 +476,9 @@ cv::Mat VideoProcessing::background_pickup(){
 					int r2 = bgr2[2];//R
 
 					if (abs(b1 - b2) > 10 && abs(g1 - g2) > 10 && abs(g1 - g2) > 10){
-						bgr2[0] += b1;
-						bgr2[1] += g1;
-						bgr2[2] += r1;
+						bgr2[0] = (b1 + bgr2[0])/2;
+						bgr2[1] = (g1 + bgr2[1]);
+						bgr2[2] = (r1 + bgr2[2]);
 					}
 				}
 			}
