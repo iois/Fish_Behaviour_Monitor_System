@@ -150,7 +150,7 @@ bool VideoProcessing::open_camera()
 		return false;
 	} else {
 		_cap >> _frame;
-		_img_size = _frame.size();
+		_img_size = { _frame.size().height, _frame.size().width };
 		return true;
 	}
 }
@@ -180,7 +180,7 @@ bool VideoProcessing::open_file(const std::string &file_name){
 	}
 	else {
 		_cap >> _frame;
-		CvSize img_size = _frame.size();
+		_img_size = { _frame.size().height, _frame.size().width };
 		this->notify();
 		return true;
 	}

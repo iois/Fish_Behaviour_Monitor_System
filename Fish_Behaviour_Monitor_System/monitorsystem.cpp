@@ -71,7 +71,7 @@ MonitorSystem::~MonitorSystem()
 void MonitorSystem::exit(){
 
 	if (_video_processing){
-		_video_processing->process_end();
+		process_end();
 	}
 	SysDB_view* db_view = SysDB_view::instance(0, _sys_db);
 	if (db_view){
@@ -206,31 +206,31 @@ void MonitorSystem::record()
 				{
 					_data_writer_3.open((new_datafile_name + "_3.txt").toStdString());
 				}
+
+				_sys_db->InsertNewRecord(
+					_video_id,
+					_sys_set->get_file_save_path(),
+					_imgp_set->get_num_fish(),
+					QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"),
+					""/*remark*/);
+
+
+
+				this->_main_window->recodeAct->setIcon(QIcon("images/recording.ico"));
+				this->_main_window->statusBar()->showMessage(tr("正在记录视频与数据"));
+
+				this->_main_window->dock_set->setEnabled(false);
+				this->_main_window->dock_img_process_set->setEnabled(false);
+
+				this->_imgp_set->save_all_data();
+
+				this->_main_window->startAct->setEnabled(false);
+				this->_main_window->recodeAct->setEnabled(false);
+
 			}
 			else{
 				QMessageBox::information(nullptr, tr("警告"), tr("无法保存视频!"));
 			}
-
-			_sys_db->InsertNewRecord(
-				_video_id,
-				_sys_set->get_file_save_path(),
-				_imgp_set->get_num_fish(),
-				QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"),
-				""/*remark*/);
-
-
-
-			this->_main_window->recodeAct->setIcon(QIcon("images/recording.ico"));
-			this->_main_window->statusBar()->showMessage(tr("正在记录视频与数据"));
-
-			this->_main_window->dock_set->setEnabled(false);
-			this->_main_window->dock_img_process_set->setEnabled(false);
-
-			this->_imgp_set->save_all_data();
-
-			this->_main_window->startAct->setEnabled(false);
-			this->_main_window->recodeAct->setEnabled(false);
-
 		}
 	}
 }
@@ -268,7 +268,9 @@ void MonitorSystem::time_out_todo(){
 
 	if (_isRecord){
 		if (_video_Writer.isOpened()){
-			this->save_video(_video_processing->get_original_img());//保存视频
+			cv::Mat temp = _video_processing->get_original_img();
+			qDebug() << temp.size().area();
+			this->save_video(temp);//保存视频
 		}
 		else
 		{
@@ -279,9 +281,10 @@ void MonitorSystem::time_out_todo(){
 	++_num_of_frames;
 }
 
-void MonitorSystem::save_video(const cv::Mat *image){
+void MonitorSystem::save_video(const cv::Mat &image){
 	if (!_video_processing)
 	{
+		qDebug() << "can not save video";
 	}
 	if (_num_of_frames_recoded > 15 * 60 * 60 * 24){ //15*60*60*24 one day
 		_video_Writer.release();
@@ -307,9 +310,13 @@ void MonitorSystem::save_video(const cv::Mat *image){
 		this->record();
 	}
 	else{
-		if (image){
-			_video_Writer << *image;//_video_processing->get_original_img();
+		if (!image.empty()){
+			_video_Writer.write(image);
+			//_video_Writer << image;//_video_processing->get_original_img();
 			++_num_of_frames_recoded;
+		}
+		else{
+			qDebug() << "can not save video  11";
 		}
 	}
 }

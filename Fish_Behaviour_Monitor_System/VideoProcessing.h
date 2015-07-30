@@ -46,7 +46,8 @@ public:
 	//ÌáÈ¡±³¾° ,·µ»Ø±³¾°RGB
 	cv::Mat background_pickup(); 
 
-	cv::Mat* get_original_img(){ if (!_frame.empty()){ return &this->_frame; } else{ return nullptr; } }
+
+	cv::Mat get_original_img(){ return this->_frame; }
 
 private:
 

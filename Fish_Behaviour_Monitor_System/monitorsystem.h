@@ -45,7 +45,9 @@ private:
 	SendSMS               *_sms_sender;
 	SendWaterTakingSignal *_water_taking_siganl_sender;
 
-
+	SendSMS_view               *_sms_sender_view;
+	SendWaterTakingSignal_view *_water_taking_siganl_sender_view;
+	
 	// need add to mainwindow
 	ImgProcessSet_view *img_p_set;
 	SystemSetView_dock *set_view;
@@ -83,7 +85,7 @@ private:
 	void time_out_todo();
 
 	//存储原始数据
-	void save_video(const cv::Mat *image);
+	void save_video(const cv::Mat &image);
 	//存储特征数据
 	void save_data(int index, double val);
 
