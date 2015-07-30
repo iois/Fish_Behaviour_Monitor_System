@@ -105,22 +105,20 @@ IplImage* VideoProcessing::ImgProcessing(IplImage *src, IplImage *dst, IplImage 
 	return dst;
 }
 
-cv::Mat VideoProcessing::ImgProcessing(cv::Mat &src, cv::Mat &dst, cv::Mat &img_draw)
+cv::Mat VideoProcessing::ImgProcessing(const cv::Mat &src, cv::Mat &dst, cv::Mat &img_draw)
 {
-	/*
-	// Í¼Æ¬Ô¤´¦Àí£¬×ª»¯³É»Ò¶ÈÍ¼Ïñ
-	if (src.channels() > 1){
-		cvtColor(src, dst, CV_BGR2GRAY);  // ²ÊÉ«Í¼Ïñ×ª»¯³É»Ò¶ÈÍ¼Ïñ
-	}
-	*/
+
+	cv::Mat temp_rgb;//²»ÄÜcv::Mat temp_rgb£¨src£©, Ç³¿½±´
+	src.copyTo(temp_rgb);
+
 	if (!_background.empty())
 	{
-		src = abs(src - _background);
+		temp_rgb = abs(src - _background);
 	}
 	
 	cv::imshow("Display Image3", src);
 
-	cv::Mat temp = get_contours_colors(src, _img_process_set->get_segment_threshold());
+	cv::Mat temp = get_contours_colors(temp_rgb, _img_process_set->get_segment_threshold());
 
 	cvtColor(temp, dst, CV_BGR2GRAY);  // ²ÊÉ«Í¼Ïñ×ª»¯³É»Ò¶ÈÍ¼Ïñ
 
@@ -128,14 +126,13 @@ cv::Mat VideoProcessing::ImgProcessing(cv::Mat &src, cv::Mat &dst, cv::Mat &img_
 
 	//bitwise_xor(cv::Scalar(255, 0, 0, 0), dst, dst);//xor,ÑÕÉ«È¡·´
 
-
+	// todo
 	// Í¼Æ¬ ãÐÖµ·Ö¸î
 	//dst = dst - _background;
 	//threshold(dst, dst, _img_process_set->get_segment_threshold(), 255, 0);//ãÐÖµ·Ö¸î
 	//ErodeDilate(dst, dst);
 	//OpenClose(dst, dst);
 	
-
 	bitwise_xor(cv::Scalar(255, 0, 0, 0), dst, dst);//xor,ÑÕÉ«È¡·´
 
 	cv::imshow("Display Image2", dst);
@@ -153,7 +150,7 @@ bool VideoProcessing::open_camera()
 		return false;
 	} else {
 		_cap >> _frame;
-		CvSize img_size = _frame.size();
+		_img_size = _frame.size();
 		return true;
 	}
 }
@@ -200,20 +197,15 @@ void VideoProcessing::time_out_todo_1()
 	//´ÓCvCaptureÖÐ»ñµÃÒ»Ö¡
 	_cap >> _frame;
 	{
-
-		++_num_of_frames;
-		this->notify();
-
 		// Èç¹û¿ªÊ¼´¦Àí
 		if (_isPrecess)
 		{
-			ImgProcessing(_frame, _p_temp, _frame);
+			ImgProcessing(_frame, _img_temp, _frame);
+
 			if (_img_process_set->get_num_fish() == 1){
 				
-				double speed = _mode_processing->execute(_p_temp, _frame, _img_process_set->get_min_area());
-				double wp = _mode_processing_wp->execute(_p_temp, _frame, _img_process_set->get_min_area());
-				send_data(1, speed / (640 / this->_sys_set->get_realLength()));
-				send_data(2, wp);
+				double speed = _mode_processing->execute(_img_temp, _frame, _img_process_set->get_min_area());
+				double wp = _mode_processing_wp->execute(_img_temp, _frame, _img_process_set->get_min_area());
 
 				emit send_data_signal(1, speed);
 				emit send_data_signal(2, wp);
@@ -221,11 +213,15 @@ void VideoProcessing::time_out_todo_1()
 			}
 			else if (_img_process_set->get_num_fish() > 1)
 			{
-				double r = _mode_processing_Cluster->execute(_p_temp, _frame, _img_process_set->get_min_area());
-				send_data(3, r);
+				double r = _mode_processing_Cluster->execute(_img_temp, _frame, _img_process_set->get_min_area());
+
+				emit send_data_signal(3, r);
 			}
 		}
 	}
+
+	++_num_of_frames;
+	this->notify();
 }
 
 void VideoProcessing::notify()// Í¼Ïñ »ò Êý¾Ý ¸Ä±äÁË£¬Ïò¹Û²ìÕßmainwindow ·¢³öÍ¨Öª
@@ -236,122 +232,11 @@ void VideoProcessing::notify()// Í¼Ïñ »ò Êý¾Ý ¸Ä±äÁË£¬Ïò¹Û²ìÕßmainwindow ·¢³öÍ¨Ö
 	}
 }
 
-void VideoProcessing::send_data(size_t modeIndex, double data){
-	static double speed = 0;
-	static int duration = 4;//Òì³£³ÖÐøÊ±¼ä
-	static int wp_count = 0;
-	static int old_data = 0;  //Ç°Ò»¸öÊý¾Ý
-
-	static int r = 0;
-	static int r_count = 0;
-	static int is_warning = 0;
-
-	static int speedcount = 0;
-	static int wpcount = 0;
-
-	QString current_date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-
-	/*
-	switch (modeIndex)
-	{
-	case 1: // ËÙ¶È
-	{
-		if (_num_of_frames % 15 == 0){
-			// Êý¾ÝÏÔÊ¾£¬±£´æ
-			_main_window->updata_data(1, data);
-
-			if (_isRecord){
-				_data_writer_1 << (data) << " ";	// Êý¾ÝÐ´Èë¶ÔÓ¦ÎÄ¼þÖÐ
-
-				// Ô¤¾¯¼ì²â
-				if (data > 2){
-					++speedcount;
-					if (speedcount > duration && is_warning == 0){
-						_main_window->ui_warning_view->add_warning_item(1, 1, "ËÙ¶ÈÒì³£ " + current_date);
-						_sys_db->Insert_warning(1, 0, modeIndex);
-						is_warning = 1;
-					}
-				}
-				else {
-					speedcount = 0;
-					is_warning = 0;
-				}
-			}
-		}
-		break;
-	}
-	
-	case 2: //
-	{
-		if (_num_of_frames % 15 == 0){
-			_main_window->updata_data(2, wp_count);
-
-			if (_isRecord){
-				_data_writer_2 << (wp_count) << std::endl;	// Êý¾ÝÐ´Èë¶ÔÓ¦ÎÄ¼þÖÐ
-
-				if (data > 1.5){
-					++wpcount;
-					if (wpcount > duration && is_warning == 0){
-						_main_window->ui_warning_view->add_warning_item(1, 2, "Î²ÆµÒì³£ " + current_date);
-						_sys_db->Insert_warning(2, 0, modeIndex);
-						is_warning = 1;
-					}
-				}
-				else{
-					wpcount = 0;
-					is_warning = 0;
-				}
-			}
-			wp_count = 0;
-			old_data = data;
-		}
-		else{
-			if ((old_data == 1 && data == 2) || (old_data == 2 && data == 1)){
-				++wp_count;
-				old_data = data;
-			}
-		}
-		break;
-	}
-	case 3: //Èº¾ÛÌØÕ÷£¬
-	{
-		if (_num_of_frames % 15 == 0){
-
-			_main_window->updata_data(3, r / 15);
-			if (_isRecord){
-				_data_writer_3 << (r / 15) << std::endl;	// Êý¾ÝÐ´Èë¶ÔÓ¦ÎÄ¼þÖÐ
-
-				if (data > 50){
-					++r_count;
-					if (r_count > duration && is_warning == 0){
-						_main_window->ui_warning_view->add_warning_item(1, 3, "°ë¾¶Òì³£ " + current_date);
-						_sys_db->Insert_warning(3, 0, modeIndex);
-						is_warning = 1;
-					}
-				}
-				else{
-					r_count = 0;
-					is_warning = 0;
-				}
-			}
-			r = 0;
-		}
-		else {
-			r += data;
-		}
-		break;
-	}
-	default:
-		break;
-	}
-	*/
-}
-
-
 void VideoProcessing::process_end()
 {
 	if (_isPrecess){
-		if (this->_capture){
+		if (_cap.isOpened()){
+			_cap.release();
 			_isPrecess = 0;
 		}
 	}
@@ -359,7 +244,7 @@ void VideoProcessing::process_end()
 
 void VideoProcessing::process_begin()
 {
-	if (this->_capture)
+	if (_cap.isOpened())
 	{
 		_isPrecess = 1;
 	}

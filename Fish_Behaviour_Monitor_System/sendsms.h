@@ -82,7 +82,6 @@ private:
     QLabel *waitResponseLabel;
     QSpinBox *waitResponseSpinBox;
 
-
 	QLabel    *numberLabel;
 	QLineEdit *numberLineEdit;
 

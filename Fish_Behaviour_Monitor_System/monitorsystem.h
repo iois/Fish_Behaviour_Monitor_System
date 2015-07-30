@@ -27,6 +27,8 @@ public:
 	MonitorSystem(QWidget *parent = 0);
 	~MonitorSystem();
 
+private:
+
 	QTimer*          _t;
 
 	MainWindow*      _main_window;
@@ -39,12 +41,20 @@ public:
 
 	SysDB*         _sys_db;
 
+
+	SendSMS               *_sms_sender;
+	SendWaterTakingSignal *_water_taking_siganl_sender;
+
+
+	// need add to mainwindow
 	ImgProcessSet_view *img_p_set;
 	SystemSetView_dock *set_view;
+	//
 
-private:
 	int _isRecord = 1;
 	unsigned int _num_of_frames_recoded = 0;
+	unsigned int _num_of_frames = 0;
+
 	cv::VideoWriter _video_Writer;   // 存储视频到本地
 	std::ofstream _data_writer_1;
 	std::ofstream _data_writer_2;
@@ -52,9 +62,6 @@ private:
 
 	QString _video_id;
 
-public:
-	SendSMS               *_sms_sender;
-	SendWaterTakingSignal *_water_taking_siganl_sender;
 
 
 private:
@@ -69,11 +76,19 @@ private:
 	void DB_manage();
 	void show_DB_table();
 
+	//获取背景图片
 	void background_pickup();
 
+	//
 	void time_out_todo();
 
-	void save_video();
+	//存储原始数据
+	void save_video(const cv::Mat *image);
+	//存储特征数据
+	void save_data(int index, double val);
+
+	//接收vp处理得到的数据
+	void receive_data(int index, double val);
 };
 
 #endif // MONITORSYSTEM_H
