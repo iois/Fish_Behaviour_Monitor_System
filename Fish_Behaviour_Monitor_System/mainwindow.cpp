@@ -231,7 +231,7 @@ void MainWindow::updata_img(IplImage *src){
 	//this->ui_img_view->update_img(src);
 }
 
-void MainWindow::updata_img(cv::Mat &mat){
+void MainWindow::updata_img(const cv::Mat &mat){
 	this->ui_img_view->update_img(mat);
 }
 

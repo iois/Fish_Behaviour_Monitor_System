@@ -180,7 +180,7 @@ bool VideoProcessing::open_file(const std::string &file_name){
 	}
 	else {
 		_cap >> _frame;
-		_img_size = { _frame.size().height, _frame.size().width };
+		_img_size = _frame.size();
 		this->notify();
 		return true;
 	}
@@ -219,7 +219,7 @@ void VideoProcessing::time_out_todo_1()
 			}
 		}
 	}
-
+	//bitwise_xor(cv::Scalar(255, 0, 0, 0), _frame, _frame);//xor,ÑÕÉ«È¡·´
 	++_num_of_frames;
 	this->notify();
 }

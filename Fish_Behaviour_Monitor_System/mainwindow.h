@@ -98,7 +98,7 @@ public:
 
 public:	//给 video_processing 调用
 	void updata_img(IplImage *src);//观察vp的变化->显示图像
-	void updata_img(cv::Mat &mat); //观察vp的变化->显示图像
+	void updata_img(const cv::Mat &mat); //观察vp的变化->显示图像
 	void updata_data(size_t modeIndex, double data); // 
 
 public slots:

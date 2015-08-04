@@ -180,7 +180,20 @@ void MonitorSystem::record()
 		}
 		*/
 
-		{//确定按钮
+		// 删除最早的文件
+		{
+			int storage = get_remain_storage(this->_sys_set->get_file_save_path());
+
+			if (storage < 5){  //5:硬盘剩余空间小于5G
+				// 删除最早的文件
+				QString file_del = this->_sys_db->get_del_file_name();
+				if (!file_del.isEmpty()){
+					QFile fileTemp(file_del);
+					fileTemp.remove();
+				}
+			}
+		}
+		{
 
 			QString current_date = QDateTime::currentDateTime().toString("yyyyMMddhhmm");
 
@@ -290,6 +303,7 @@ void MonitorSystem::save_video(const cv::Mat &image){
 		_video_Writer.release();
 		_num_of_frames_recoded = 0;
 
+		/*
 		int storage = get_remain_storage(this->_sys_set->get_file_save_path());
 
 		if (storage < 5){  //5:硬盘剩余空间小于5G
@@ -300,19 +314,19 @@ void MonitorSystem::save_video(const cv::Mat &image){
 				fileTemp.remove();
 			}
 		}
-
+		*/
+		/*
 		QString current_date = QDateTime::currentDateTime().toString("yyyyMMddhhmm");
 
 		QString _video_id = current_date;
 
 		QString new_datafile_name = _sys_set->get_file_save_path() + '/' + current_date;
-
+		*/
 		this->record();
 	}
 	else{
 		if (!image.empty()){
-			_video_Writer.write(image);
-			//_video_Writer << image;//_video_processing->get_original_img();
+			_video_Writer<<image;//_video_processing->get_original_img();
 			++_num_of_frames_recoded;
 		}
 		else{

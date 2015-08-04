@@ -9,7 +9,7 @@
 #include <highgui.h>//CvCapture
 
 //Opencv Mat -> Qt QImage
-static QImage Mat2QImage(cv::Mat &mat);
+static QImage Mat2QImage(const cv::Mat &mat);
 
 //  基本类
 //  这个类用于显示一个图片QImage *src 到 QLabel   *_img_label 上
@@ -60,25 +60,26 @@ public:
 	ImgShowWidget_Mat(QWidget *parent);
 	~ImgShowWidget_Mat();
 
-	void update_img(cv::Mat &mat);
+	void update_img(const cv::Mat &mat);
 private:
 	IplImage *_iplImg;
 	QImage   *_qimg;
 };
 
 //Mat->QImage
-static QImage Mat2QImage(cv::Mat &mat)
+static QImage Mat2QImage(const cv::Mat &mat)
 {
+	static cv::Mat temp_mat;
 	QImage img;
 	int nChannel = mat.channels();
 	if (nChannel == 3)
 	{
-		cv::cvtColor(mat, mat, CV_BGR2RGB);
-		img = QImage((const unsigned char*)mat.data, mat.cols, mat.rows, QImage::Format_RGB888);
+		cv::cvtColor(mat, temp_mat, CV_BGR2RGB);
+		img = QImage((const unsigned char*)temp_mat.data, temp_mat.cols, temp_mat.rows, QImage::Format_RGB888);
 	}
 	else if (nChannel == 4 || nChannel == 1)
 	{
-		img = QImage((const unsigned char*)mat.data, mat.cols, mat.rows, QImage::Format_ARGB32);
+		img = QImage((const unsigned char*)temp_mat.data, temp_mat.cols, temp_mat.rows, QImage::Format_ARGB32);
 	}
 	return img;
 }

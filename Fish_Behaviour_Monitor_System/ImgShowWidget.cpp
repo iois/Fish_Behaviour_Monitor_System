@@ -102,8 +102,8 @@ ImgShowWidget_Mat::~ImgShowWidget_Mat()
 	}
 }
 
-void ImgShowWidget_Mat::update_img(cv::Mat &mat)
+void ImgShowWidget_Mat::update_img(const cv::Mat &mat)
 {
-	QImage &&qimg = Mat2QImage(mat);
+	QImage qimg = Mat2QImage(mat);
 	this->show_img(&qimg);
 }
