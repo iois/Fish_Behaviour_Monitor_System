@@ -1,4 +1,5 @@
-#include "VideoProcessing.h"
+#include<vector>
+#include "VideoProcessing.h"5
 #include "mainwindow.h"
 #include"SystemSet.h"
 
@@ -61,6 +62,45 @@ cv::Mat get_contours_colors(const cv::Mat &src,int color_threshold){
 	return dst;
 }
 
+
+void Segment_HSV(cv::Mat &src, cv::Mat &dst, int S_threshold)
+{
+	cv::Mat res, img;
+
+	if (src.empty()){
+		return;
+	}
+
+	cv::cvtColor(src, img, CV_RGB2HSV);
+	std::vector<cv::Mat> HSV;
+	split(img, HSV);
+
+	cv::Mat HImg = HSV[0];
+	cv::Mat SImg = HSV[1];
+	cv::Mat VImg = HSV[2];
+
+
+	for (int i = 0; i < SImg.rows; ++i)
+	{
+		for (int j = 0; j < SImg.cols; ++j)
+		{
+			//int value = SImg.at<char>(i, j);
+			if (SImg.at<char>(i, j) >= S_threshold || SImg.at<char>(i, j) < 0)
+			{
+				dst.at<cv::Vec3b>(i, j)[0] = 255;
+				dst.at<cv::Vec3b>(i, j)[1] = 255;
+				dst.at<cv::Vec3b>(i, j)[2] = 255;
+			}
+			else
+			{
+				dst.at<cv::Vec3b>(i, j)[0] = 0;
+				dst.at<cv::Vec3b>(i, j)[1] = 0;
+				dst.at<cv::Vec3b>(i, j)[2] = 0;
+			}
+		}
+	}
+}
+
 //==========================================================================
 
 
@@ -115,37 +155,29 @@ cv::Mat VideoProcessing::ImgProcessing(const cv::Mat &src, cv::Mat &dst, cv::Mat
 
 	GaussianBlur(dst, dst, cv::Size(7,7), 0, 0); //高斯
 	
-	
-	if (!_background.empty())
-	{
-		temp_rgb = abs(src - _background);
-	}
-	
-	cv::imshow("abs_img", temp_rgb);
+	// 目标分割: 
 
-	cv::Mat temp_dst_rgb = get_contours_colors(temp_rgb, _img_process_set->get_segment_threshold());
+	// 方法1：利用背景差分，RGB颜色信息分割
+	//if (!_background.empty())
+	//{
+	//    temp_rgb = abs(src - _background);
+	//}
+	//cv::imshow("abs_img", temp_rgb);
+	//cv::Mat temp_dst_rgb = get_contours_colors(temp_rgb, _img_process_set->get_segment_threshold());
 
+	// 方法2：利用HSV颜色空间分割
+	cv::Mat temp_dst_rgb;
+	temp_rgb.copyTo(temp_dst_rgb);
+	Segment_HSV(temp_rgb, temp_dst_rgb,_img_process_set->get_segment_threshold());
 		
+
 	cvtColor(temp_dst_rgb, dst, CV_BGR2GRAY);  // 彩色图像转化成灰度图像
 	
-
 	medianBlur(dst, dst, 3);
-	GaussianBlur(dst, dst, cv::Size(7,7), 0, 0); //高斯滤波
+	GaussianBlur(dst, dst, cv::Size(5,5), 0, 0); //高斯滤波
 
 	
-
-
 	//bitwise_xor(cv::Scalar(255, 0, 0, 0), dst, dst);//xor,颜色取反
-
-	// todo
-	// 图片 阈值分割
-
-	//threshold(dst, dst, _img_process_set->get_segment_threshold(), 255, 0);//阈值分割
-	//ErodeDilate(dst, dst);
-	//OpenClose(dst, dst);
-	
-	//bitwise_xor(cv::Scalar(255, 0, 0, 0), dst, dst);//xor,颜色取反
-
 	cv::imshow("Display Image2", dst);
 
 	return dst;
