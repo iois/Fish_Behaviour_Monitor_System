@@ -62,7 +62,7 @@ void ImgProcessSet_view::set_up_UI()
 	ui_min_area_label->setText(tr("最小面积"));
 
 	ui_max_area = new QSpinBox(this);
-	ui_max_area->setRange(0, 1000);       //设置变化范围  
+	ui_max_area->setRange(0, 5000);       //设置变化范围  
 	ui_max_area->setSuffix("像素");       //设置输出显示前缀 
 	QLabel* ui_max_area_label = new QLabel(this);
 	ui_max_area_label->setText(tr("最大面积"));

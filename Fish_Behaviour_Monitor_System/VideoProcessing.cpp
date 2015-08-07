@@ -42,17 +42,19 @@ cv::Mat get_contours_colors(const cv::Mat &src,int color_threshold){
 			int r1 = bgr[2];//R
 
 			// 根据颜色通道信息判断目标
-			if ((0 <= r1) && (r1<color_threshold) && (0 <= g1) && (g1<color_threshold) && (0 <= b1) && (b1<color_threshold))
-			{
-				dst.at<cv::Vec3b>(k, l)[0] = 0;
-				dst.at<cv::Vec3b>(k, l)[1] = 0;
-				dst.at<cv::Vec3b>(k, l)[2] = 0;
-			}
-			else
+			// 减后比较小的是背景
+			//if ((40 <= r1) && (r1<250) && (0 <= g1) && (g1<color_threshold) && (0 <= b1) && (b1<color_threshold))
+			if ((0 <= r1) && (r1<40+color_threshold) && (0 <= g1) && (g1<color_threshold) && (0 <= b1) && (b1<color_threshold+10))
 			{
 				dst.at<cv::Vec3b>(k, l)[0] = 255;
 				dst.at<cv::Vec3b>(k, l)[1] = 255;
 				dst.at<cv::Vec3b>(k, l)[2] = 255;
+			}
+			else
+			{
+				dst.at<cv::Vec3b>(k, l)[0] = 0;
+				dst.at<cv::Vec3b>(k, l)[1] = 0;
+				dst.at<cv::Vec3b>(k, l)[2] = 0;  //[0,0,0]黑
 			}
 		}
 	} //根据颜色二值化完毕。 */
@@ -111,29 +113,38 @@ cv::Mat VideoProcessing::ImgProcessing(const cv::Mat &src, cv::Mat &dst, cv::Mat
 	cv::Mat temp_rgb;//不能cv::Mat temp_rgb（src）, 浅拷贝
 	src.copyTo(temp_rgb);
 
+	GaussianBlur(dst, dst, cv::Size(7,7), 0, 0); //高斯
+	
+	
 	if (!_background.empty())
 	{
 		temp_rgb = abs(src - _background);
 	}
 	
-	cv::imshow("Display Image3", src);
+	cv::imshow("abs_img", temp_rgb);
 
-	cv::Mat temp = get_contours_colors(temp_rgb, _img_process_set->get_segment_threshold());
+	cv::Mat temp_dst_rgb = get_contours_colors(temp_rgb, _img_process_set->get_segment_threshold());
 
-	cvtColor(temp, dst, CV_BGR2GRAY);  // 彩色图像转化成灰度图像
+		
+	cvtColor(temp_dst_rgb, dst, CV_BGR2GRAY);  // 彩色图像转化成灰度图像
+	
 
-	GaussianBlur(dst, dst, cv::Size(3,3), 0, 0); //高斯滤波
+	medianBlur(dst, dst, 3);
+	GaussianBlur(dst, dst, cv::Size(7,7), 0, 0); //高斯滤波
+
+	
+
 
 	//bitwise_xor(cv::Scalar(255, 0, 0, 0), dst, dst);//xor,颜色取反
 
 	// todo
 	// 图片 阈值分割
-	//dst = dst - _background;
+
 	//threshold(dst, dst, _img_process_set->get_segment_threshold(), 255, 0);//阈值分割
 	//ErodeDilate(dst, dst);
 	//OpenClose(dst, dst);
 	
-	bitwise_xor(cv::Scalar(255, 0, 0, 0), dst, dst);//xor,颜色取反
+	//bitwise_xor(cv::Scalar(255, 0, 0, 0), dst, dst);//xor,颜色取反
 
 	cv::imshow("Display Image2", dst);
 
@@ -144,7 +155,7 @@ bool VideoProcessing::open_camera()
 {
 	cv::namedWindow("Display Image", cv::WINDOW_AUTOSIZE);
 	cv::namedWindow("Display Image2", cv::WINDOW_AUTOSIZE);
-	cv::namedWindow("Display Image3", cv::WINDOW_AUTOSIZE);
+	cv::namedWindow("abs_img", cv::WINDOW_AUTOSIZE);
 	_cap.open(0);
 	if (!_cap.isOpened()){
 		return false;
@@ -253,15 +264,19 @@ void VideoProcessing::process_begin()
 cv::Mat VideoProcessing::background_pickup(){
 
 	cv::Mat background;
+
+	int times = 30;    //从30帧中
+	int num_frames = 5;//取5帧做平均做背景
+	int step = times / num_frames;
 	
 	if (_cap.isOpened()){
 		_cap >> _frame;
-		//cvtColor(_frame, temp, CV_BGR2GRAY);  // 彩色图像转化成灰度图像
 		_frame.copyTo(background);
-		for (size_t i = 0; i < 15; ++i)
+		for (size_t i = 1; i < times+1; ++i)
 		{
 			_cap >> _frame;
-			if (i % 5 == 0)
+			int kk = i / step;
+			if (i % step == 0)
 			{
 				int height1 = _frame.size().height;
 				int width1 = _frame.size().width;
@@ -274,25 +289,23 @@ cv::Mat VideoProcessing::background_pickup(){
 						int g1 = bgr[1];//G
 						int r1 = bgr[2];//R
 						cv::Vec3b& bgr2 = background.at<cv::Vec3b>(k, l);
-						int b2 = bgr2[0];//B
+						int b2 = bgr2[0];//B 
 						int g2 = bgr2[1];//G
 						int r2 = bgr2[2];//R
 
+						//图片与背景的差值过大，则做平均
 						if (abs(b1 - b2) > 10 && abs(g1 - g2) > 10 && abs(g1 - g2) > 10){
-							bgr2[0] = (b1 + bgr2[0]) / 2;
-							bgr2[1] = (g1 + bgr2[1]);
-							bgr2[2] = (r1 + bgr2[2]);
+							bgr2[0] = (b1 + bgr2[0] * (kk - 1)) / kk;
+							bgr2[1] = (g1 + bgr2[1] * (kk - 1)) / kk;
+							bgr2[2] = (r1 + bgr2[2] * (kk - 1)) / kk;
 						}
 					}
 				}
-				/*
-				cvtColor(_frame, temp, CV_BGR2GRAY);  // 彩色图像转化成灰度图像
-				{
-				background = background*0.95 + _frame*0.05;
-				}
-				*/
 			}
 		}
+
+		GaussianBlur(background, background, cv::Size(5, 5), 0, 0); //高斯滤波
+
 		background.copyTo(this->_background);
 		cv::imwrite("background.bmp", background);
 		emit background_pickup_done();

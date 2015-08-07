@@ -264,7 +264,7 @@ void MonitorSystem::background_pickup(){
 	connect(this->_video_processing, &VideoProcessing::background_pickup_done, loading_dialog, &LoadingDialog::close);
 
 	thread->start();
-	loading_dialog->exec();
+	loading_dialog->show();
 
 	this->_video_processing->background_pickup();
 
