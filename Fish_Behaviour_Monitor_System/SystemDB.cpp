@@ -108,14 +108,13 @@ bool SysDB::Insert_warning(int monitor_id, QString video_id, int mode){
 // 2015-06-12 20:10
 bool SysDB::InsertNewRecord(QString video_id, const QString &path, int num_fish, QString time_begin, const QString &remark){
 	QSqlQuery query;
-	if (query.exec(tr("INSERT INTO record_tab VALUES ('%1','%2','%3','%4','%5','%6','%7')")
+	if (query.exec(tr("INSERT INTO record_tab VALUES ('%1','%2','%3','%4','%5','%6')")
 		.arg(video_id)
 		.arg(path)
 		.arg(num_fish)
 		.arg(time_begin)
 		.arg(time_begin)
 		.arg(remark)
-		.arg(0)
 		)){
 		emit DBChanged();
 		return true;

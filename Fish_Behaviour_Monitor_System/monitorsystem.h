@@ -32,6 +32,8 @@ class MonitorSystem : public QWidget
 public:
 	MonitorSystem(QWidget *parent = 0);
 	~MonitorSystem();
+	void init();
+	void connect_signal_slot();
 
 private:
 
@@ -71,20 +73,17 @@ private:
 	void open_camera();
 	void open_file();
 	void process_start();
-	void process_end();
 	void record();
-
+	void process_end();
 	void exit();
+
+	void time_out_todo();
 
 	void DB_manage();
 	void show_DB_table();
 
 	//获取背景图片
 	void background_pickup();
-
-	//
-	void time_out_todo();
-
 	//存储原始数据
 	void save_video(const cv::Mat &image);
 	//存储特征数据
@@ -92,6 +91,12 @@ private:
 
 	//接收vp处理得到的数据
 	void receive_data(int index, double val);
+
+	void sendSNS();//发短信
+	void collect_water();//收集水
+
+	// 日志文件
+	std::fstream LOG;
 };
 
 #endif // MONITORSYSTEM_H

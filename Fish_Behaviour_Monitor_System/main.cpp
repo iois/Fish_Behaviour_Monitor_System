@@ -1,6 +1,6 @@
 #include <QtWidgets/QApplication>
-#include"App.h"
-#include"monitorsystem.h"
+#include "stdafx.h"
+#include "monitorsystem.h"
 using namespace std;
 int main(int argc, char *argv[])
 {

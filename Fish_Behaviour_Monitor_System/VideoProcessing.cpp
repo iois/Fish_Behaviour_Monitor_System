@@ -178,7 +178,7 @@ cv::Mat VideoProcessing::ImgProcessing(const cv::Mat &src, cv::Mat &dst, cv::Mat
 
 	
 	//bitwise_xor(cv::Scalar(255, 0, 0, 0), dst, dst);//xor,ÑÕÉ«È¡·´
-	cv::imshow("Display Image2", dst);
+	//cv::imshow("Display Image2", dst);
 
 	return dst;
 }
@@ -193,7 +193,7 @@ bool VideoProcessing::open_camera()
 		return false;
 	} else {
 		_cap >> _frame;
-		_img_size = { _frame.size().height, _frame.size().width };
+		_img_size = { _frame.size().width, _frame.size().height };
 		return true;
 	}
 }
@@ -208,17 +208,16 @@ bool VideoProcessing::close_camera()
 
 bool VideoProcessing::open_file(const char* file_name)
 {
-	//_video_file_name = file_name;
 	_cap.open(file_name);
-	qDebug() << file_name;
+
+	//qDebug() << file_name;
+
 	if (!_cap.isOpened()){
 		return false;
 	} else {
 		_cap >> _frame;
 		CvSize img_size = _frame.size();
-		//cvtColor(_frame, _p_temp, CV_BGR2GRAY);
 
-		//ImgProcessing(_frame, _p_temp, _frame);
 		this->notify();
 		return true;
 	}
@@ -286,10 +285,8 @@ void VideoProcessing::notify()// Í¼Ïñ »ò Êý¾Ý ¸Ä±äÁË£¬Ïò¹Û²ìÕßmainwindow ·¢³öÍ¨Ö
 void VideoProcessing::process_end()
 {
 	if (_isPrecess){
-		if (_cap.isOpened()){
-			_cap.release();
-			_isPrecess = 0;
-		}
+		close_camera();
+		_isPrecess = 0;
 	}
 }
 
