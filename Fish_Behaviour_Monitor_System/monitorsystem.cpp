@@ -1,17 +1,14 @@
 ﻿#include "monitorsystem.h"
-
-
 #include<QtCore\qdebug.h>
 
-MonitorSystem::MonitorSystem(QWidget *parent)
-	: QWidget(parent)
+MonitorSystem::MonitorSystem(QWidget *parent): QWidget(parent)
 {
 	//init
 	_imgp_set = new ImgProcessSet();
-	_sys_set = new SystemSet(this);
+	_sys_set  = new SystemSet(this);
 
 	_sys_db = new SysDB();
-	_sys_db->AddConnection("QSQLITE", "data.db", "", "", "", 0);
+	_sys_db->AddConnection("QSQLITE", "data.db", "", "", "", 0);//连接到本地数据库文件data.db
 
 	_t = new QTimer(this);
 
@@ -21,6 +18,7 @@ MonitorSystem::MonitorSystem(QWidget *parent)
 
 	_thread_videoprocessing = new QThread(this);
 	_video_processing->moveToThread(_thread_videoprocessing);
+
 	_thread_videoprocessing->start();
 
 	_water_taking_siganl_sender = new SendWaterTakingSignal();
@@ -28,6 +26,9 @@ MonitorSystem::MonitorSystem(QWidget *parent)
 	_sms_sender = new SendSMS();
 
 	img_p_set = new ImgProcessSet_view(_imgp_set);
+
+	//init over-----------------------------------------------------//
+
 	// add to mainwindow
 	_main_window->dock_img_process_set->setWidget(img_p_set);
 
@@ -49,12 +50,9 @@ MonitorSystem::MonitorSystem(QWidget *parent)
 
 	connect(_t, &QTimer::timeout, this, &MonitorSystem::time_out_todo);
 
-	//main_window->showFullScreen();//ÎÞ±ß¿ò£¬×î´ó»¯£¬ÎÞ×îÐ¡»¯×î´ó»¯´°¿Ú
 	_main_window->showMaximized();
 
-
 	connect(_video_processing, &VideoProcessing::send_data_signal, this, &MonitorSystem::receive_data);
-
 }
 
 MonitorSystem::~MonitorSystem()
@@ -70,25 +68,22 @@ MonitorSystem::~MonitorSystem()
 
 void MonitorSystem::exit(){
 
-	if (_video_processing){
-		process_end();
-	}
+	if (_video_processing){ process_end(); }
 	SysDB_view* db_view = SysDB_view::instance(0, _sys_db);
-	if (db_view){
-		db_view->close();
-	}
-	if (_main_window){
-		_main_window->close();
-	}
+	if (db_view){ db_view->close(); }
+	if (_main_window){ _main_window->close(); }
+
 	this->close();
 }
 
 void MonitorSystem::open_camera(){
-	qDebug() << "monitorSystem open camera";
+	//qDebug() << "monitorSystem open camera";
 	if (!this->_video_processing->open_camera()){
-		QMessageBox::information(this->_main_window, tr("Information"), tr("Can notopen the camera !"));
+		QMessageBox::information(this->_main_window, tr("警告"), tr("无法打开摄像头!"));
+		return ;
 	}
-	_t->start(66);
+	_t->start(TIME_INTERVAL);
+
 	_main_window->opencamera->setEnabled(false);
 	_main_window->startAct->setEnabled(true);
 }
@@ -98,19 +93,11 @@ void MonitorSystem::open_file()
 	QString path_filename = QFileDialog::getOpenFileName(this, tr("打开视频文件"), ".", tr("(*.avi)"));
 
 	if (path_filename.isEmpty()){
-		QMessageBox::information(this, tr("Information"), tr("Can Not Open The File !"));
+		QMessageBox::information(this, tr("警告"), tr("无法打开文件!"));
 	}
 	else
 	{
-		/* QWtring  -> char*  //现在不用了，直接用string
-		char*  char_path_filename;
-		{
-			QByteArray ba = path_filename.toLatin1();
-			char_path_filename = ba.data();
-		}
-		*/
 		this->_video_processing->open_file(path_filename.toStdString());
-		//_t->start(66);
 
 		this->_main_window->openfile->setEnabled(false);
 		this->_main_window->opencamera->setEnabled(false);
@@ -204,8 +191,8 @@ void MonitorSystem::record()
 			QString new_video_name = new_datafile_name + ".avi";
 
 			if (  _video_Writer.open(new_video_name.toStdString(),
-				                     _codec,
-                                     _fps,
+				                     CODEC,
+                                     FPS,
 									 _video_processing->get_img_size(),
 				                     1
 				                    )

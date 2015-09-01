@@ -1,3 +1,9 @@
+/*
+App这个类为整个系统应用。
+包含了所有的东西。
+
+不用这个类，改为使用 MonitorSystem 这个类
+*/
 #pragma once
 
 #include<QtCore\qobject.h>
@@ -12,24 +18,26 @@
 
 #include "sendsms.h"
 #include "sendwatertakingsignal.h"
+using namespace std;
 
 class App :	public QObject
 {
 public:
 	App();
 	~App();
+
+	// 整个系统包含以下部分：
 private:
-	QTimer*          _t;
-	MainWindow*      _main_window;
-	VideoProcessing* _video_processing;
+	QTimer*          _t;                     //计时器
+	MainWindow*      _main_window;           //主窗口
+	VideoProcessing* _video_processing;      //视频处理类
 	QThread*         _thread_videoprocessing;//视频处理线程
 
-	ImgProcessSet* _imgp_set;
-	SystemSet*     _sys_set;
-	SysDB*         _sys_db;
+	ImgProcessSet* _imgp_set;  //图像处理设置类
+	SystemSet*     _sys_set;   //系统设置类
+	SysDB*         _sys_db;    //系统数据库类
 
 public:
-
 	SendSMS *_sms_sender;
 	SendWaterTakingSignal* _water_taking_siganl_sender;
 

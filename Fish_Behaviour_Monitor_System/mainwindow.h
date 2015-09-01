@@ -1,3 +1,5 @@
+/* 主界面类
+*/
 #pragma execution_character_set("utf-8")//解决中文乱码
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
@@ -25,6 +27,8 @@ class QMessageBox;
 #include"ImgProcessSet.h"
 
 #include "LoadingDialog.h"
+
+using namespace std;
 
 class MainWindow : public QMainWindow
 {

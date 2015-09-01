@@ -1,8 +1,6 @@
 #include "mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent, VideoProcessing *vp)
-//, QTimer *_t, SystemSet* sys_set, SysDB* sys_db, ImgProcessSet* imgset
-	: QMainWindow(parent), _video_processing(vp)
+MainWindow::MainWindow(QWidget *parent, VideoProcessing *vp): QMainWindow(parent), _video_processing(vp)
 {
 	ui_img_view = new ImgShowWidget_Mat(this);
 	ui_img_view->set_size(QSize(320 * 1.5,240 * 1.5));
@@ -46,6 +44,7 @@ MainWindow::~MainWindow()
 // [1] 
 void MainWindow::setupUi()
 {
+	// 主布局管理器（水平）
 	QHBoxLayout *hLayout_main = new QHBoxLayout(this);
 	hLayout_main->setSpacing(6);
 	hLayout_main->setContentsMargins(0, 5, 0, 0);
@@ -132,11 +131,9 @@ void MainWindow::createActions()
 {
 	opencamera = new QAction(QIcon("images/open_camera.ico"), tr("&打开摄像头"), this);
 	opencamera->setStatusTip(tr("打开摄像头"));
-	//connect(opencamera, SIGNAL(triggered()), this, SLOT(open_camera()));
 
 	openfile = new QAction(QIcon("images/open_file.ico"), tr("&打开视频文件..."), this);
 	openfile->setStatusTip(tr("打开已有视频文件"));
-	//connect(openfile, SIGNAL(triggered()), this, SLOT(open_file()));
 
 	aboutAct = new QAction(QIcon("images/about.ico"), tr("&关于"), this);
 	aboutAct->setStatusTip(tr("显示此应用“关于”窗口"));
@@ -144,15 +141,13 @@ void MainWindow::createActions()
 
 	exitAct = new QAction(QIcon("images/Exit.ico"), tr("&退出"), this);
 	exitAct->setStatusTip(tr("退出"));
-	//connect(exitAct, SIGNAL(triggered()), this, SLOT(close()));
 
 	background_pickup_Act = new QAction(QIcon("images/background_pickup.png"), tr("&背景提取"), this);
 	background_pickup_Act->setStatusTip(tr("背景提取"));
-	//connect(background_pickup_Act, SIGNAL(triggered()), this, SLOT(background_pickup()));
 
 	startAct = new QAction(QIcon("images/start.ico"), tr("&开始处理"), this);
 	startAct->setStatusTip(tr("开始处理"));
-	//connect(startAct, SIGNAL(triggered()), this, SLOT(process_start()));
+
 	startAct->setEnabled(false);
 
 	setviewdefaultAct = new QAction(tr("&设置默认窗口"), this);
@@ -168,8 +163,6 @@ void MainWindow::createActions()
 
 	DB_manage_Act = new QAction(QIcon("images/DB.ico"), tr("&数据库管理"), this);
 	DB_manage_Act->setStatusTip(tr("数据库管理"));
-	//connect(DB_manage_Act, SIGNAL(triggered()), this, SLOT(DB_manage()));
-
 
 	endAct = new QAction(QIcon("images/end.ico"), tr("&结束处理"), this);
 	endAct->setStatusTip(tr("结束处理"));

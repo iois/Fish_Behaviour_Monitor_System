@@ -1,9 +1,20 @@
-﻿#pragma execution_character_set("utf-8")//解决中文乱码
+﻿/*
+MonitorSystem这个类为整个系统应用。 包含了所有的东西。
+
+流程：
+【1】打开摄像头/文件
+【2】调节图像处理参数
+【3】记录检测信息
+【4】开始自动监测
+【5】报警/到时间换鱼
+*/
+#pragma execution_character_set("utf-8")//解决中文乱码
 #ifndef MONITORSYSTEM_H
 #define MONITORSYSTEM_H
 
 #include<QtCore\qobject.h>
 
+#include "stdafx.h"
 #include"mainwindow.h"
 #include"VideoProcessing.h"
 
@@ -13,11 +24,6 @@
 
 #include "sendsms.h"
 #include "sendwatertakingsignal.h"
-
-
-const int _fps = 15;//   视频存储——帧率
-const int _codec = CV_FOURCC('D', 'I', 'V', 'X');
-
 
 class MonitorSystem : public QWidget
 {
@@ -29,17 +35,14 @@ public:
 
 private:
 
-	QTimer*          _t;
+	QTimer*          _t;                     //计时器
+	MainWindow*      _main_window;           //主窗口
+	VideoProcessing* _video_processing;      //视频处理类
+	QThread*         _thread_videoprocessing;//视频处理线程
 
-	MainWindow*      _main_window;
-	VideoProcessing* _video_processing;
-
-	QThread*         _thread_videoprocessing;//ÊÓÆµ´¦ÀíÏß³Ì
-
-	ImgProcessSet* _imgp_set;
-	SystemSet*     _sys_set;
-
-	SysDB*         _sys_db;
+	ImgProcessSet* _imgp_set;   //图像处理设置类
+	SystemSet*     _sys_set;    //系统设置类
+	SysDB*         _sys_db;     //系统数据库类
 
 
 	SendSMS               *_sms_sender;
@@ -63,8 +66,6 @@ private:
 	std::ofstream _data_writer_3;
 
 	QString _video_id;
-
-
 
 private:
 	void open_camera();

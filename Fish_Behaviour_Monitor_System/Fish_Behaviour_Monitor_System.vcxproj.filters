@@ -110,9 +110,6 @@
     <ClCompile Include="GeneratedFiles\Release\moc_VideoProcessing.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="App.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DataShowWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -223,9 +220,6 @@
     <CustomBuild Include="GeneratedFiles\ui_monitorsystem.h">
       <Filter>Generated Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="App.h">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
     <CustomBuild Include="DataShowWidget.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
@@ -256,5 +250,10 @@
     <CustomBuild Include="sendsms.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
