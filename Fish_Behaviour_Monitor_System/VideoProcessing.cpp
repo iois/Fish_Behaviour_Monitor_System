@@ -1,5 +1,5 @@
 #include<vector>
-#include "VideoProcessing.h"5
+#include "VideoProcessing.h"
 #include "mainwindow.h"
 #include"SystemSet.h"
 
@@ -185,9 +185,9 @@ cv::Mat VideoProcessing::ImgProcessing(const cv::Mat &src, cv::Mat &dst, cv::Mat
 
 bool VideoProcessing::open_camera()
 {
-	cv::namedWindow("Display Image", cv::WINDOW_AUTOSIZE);
-	cv::namedWindow("Display Image2", cv::WINDOW_AUTOSIZE);
-	cv::namedWindow("abs_img", cv::WINDOW_AUTOSIZE);
+	//cv::namedWindow("Display Image", cv::WINDOW_AUTOSIZE);
+	//cv::namedWindow("Display Image2", cv::WINDOW_AUTOSIZE);
+	//cv::namedWindow("abs_img", cv::WINDOW_AUTOSIZE);
 	_cap.open(0);
 	if (!_cap.isOpened()){
 		return false;
@@ -196,6 +196,14 @@ bool VideoProcessing::open_camera()
 		_img_size = { _frame.size().height, _frame.size().width };
 		return true;
 	}
+}
+
+bool VideoProcessing::close_camera()
+{
+	if (_cap.isOpened()){
+		_cap.release();
+	}
+	return true;
 }
 
 bool VideoProcessing::open_file(const char* file_name)

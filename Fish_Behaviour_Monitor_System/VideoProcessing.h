@@ -35,6 +35,7 @@ public:
 	bool open_file(const std::string &file_name);
 
 	bool open_camera();
+	bool close_camera();
 
 	//设置定时器，时间一到就执行相应函数
 	void time_out_todo_1();   

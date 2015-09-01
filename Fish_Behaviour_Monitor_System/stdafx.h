@@ -7,7 +7,10 @@
 #include <stdio.h>
 #include <tchar.h>
 
-const int TIME_INTERVAL = 66;  // 计时器时间间隔
+#include <opencv2\opencv.hpp> //cv::VideoCapture
+
+const int NUM_FRAMES = 15;
+const int TIME_INTERVAL = 1000 / NUM_FRAMES;  // 计时器时间间隔
 
 
 const int FPS = 15;//   视频存储——帧率

@@ -142,8 +142,8 @@ void MainWindow::createActions()
 	exitAct = new QAction(QIcon("images/Exit.ico"), tr("&退出"), this);
 	exitAct->setStatusTip(tr("退出"));
 
-	background_pickup_Act = new QAction(QIcon("images/background_pickup.png"), tr("&背景提取"), this);
-	background_pickup_Act->setStatusTip(tr("背景提取"));
+	//background_pickup_Act = new QAction(QIcon("images/background_pickup.png"), tr("&背景提取"), this);
+	//background_pickup_Act->setStatusTip(tr("背景提取"));
 
 	startAct = new QAction(QIcon("images/start.ico"), tr("&开始处理"), this);
 	startAct->setStatusTip(tr("开始处理"));
@@ -211,7 +211,7 @@ void MainWindow::setupToolBar()
 
 	editToolBar = addToolBar(tr("Edit"));
 	editToolBar->addAction(startAct);
-	editToolBar->addAction(background_pickup_Act);
+	//editToolBar->addAction(background_pickup_Act);
 	editToolBar->addAction(recodeAct);
 	editToolBar->addAction(endAct);
 

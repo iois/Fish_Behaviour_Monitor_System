@@ -46,7 +46,7 @@ MonitorSystem::MonitorSystem(QWidget *parent): QWidget(parent)
 
 	connect(_main_window->DB_manage_Act, &QAction::triggered, this, &MonitorSystem::show_DB_table);
 
-	connect(_main_window->background_pickup_Act, &QAction::triggered, this, &MonitorSystem::background_pickup);
+	//connect(_main_window->background_pickup_Act, &QAction::triggered, this, &MonitorSystem::background_pickup);
 
 	connect(_t, &QTimer::timeout, this, &MonitorSystem::time_out_todo);
 
@@ -108,13 +108,11 @@ void MonitorSystem::open_file()
 }
 
 void MonitorSystem::process_start(){
-
-	if (_video_processing){
+	if ( _video_processing ){
 		_video_processing->process_begin();
-		_t->start(30);
+		_t->start(NUM_FRAMES);
 
-		if (this->_imgp_set->get_num_fish() > 1)
-		{
+		if (this->_imgp_set->get_num_fish() > 1){
 			this->_main_window->tabWidget->setCurrentWidget(this->_main_window->data_show_2);
 		}
 	}
@@ -224,9 +222,10 @@ void MonitorSystem::record()
 
 				this->_imgp_set->save_all_data();
 
+				this->_main_window->opencamera->setEnabled(false);
+				this->_main_window->openfile->setEnabled(false);
 				this->_main_window->startAct->setEnabled(false);
 				this->_main_window->recodeAct->setEnabled(false);
-
 			}
 			else{
 				QMessageBox::information(nullptr, tr("警告"), tr("无法保存视频!"));
