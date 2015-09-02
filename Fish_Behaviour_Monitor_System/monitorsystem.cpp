@@ -269,65 +269,104 @@ void MonitorSystem::background_pickup(){
 }
 
 //------------------------------------------------------
+// 监测一段时间（24小时）后，保存视频文件与数据，再自动新建一个监测
+// 自动结束
+void MonitorSystem::auto_monitor_end(){ // 基本等同process_end（）
+	LOG << "auto_monitor_end : "<< _video_id.toStdString() << endl;
+	_t->stop();
+	if (_video_processing && _video_processing->_isPrecess){
 
+		if (_video_Writer.isOpened()){
+			_video_Writer.release();
+		}
+		if (_data_writer_1.is_open()) _data_writer_1.close();
+		if (_data_writer_2.is_open()) _data_writer_2.close();
+		if (_data_writer_3.is_open()) _data_writer_3.close();
+		//todo
+		_sys_db->InsertNewRecord_endtime(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"), _video_id);
+	}
+	_num_of_frames_recoded = 0;
+	// todo:
+	// 显示数据 那块 清空
+}
+// 自动新检测
+void MonitorSystem::auto_new_monitor(){
+
+	QString current_date = QDateTime::currentDateTime().toString("yyyyMMddhhmm");
+
+	this->_video_id = current_date;
+	// 保存数据的文件名
+	QString new_datafile_name = _sys_set->get_file_save_path() + '/' + current_date;
+	// 保存视频的文件名
+	QString new_video_name = new_datafile_name + ".avi";
+	// 打开视频保存流
+	_video_Writer.open(new_video_name.toStdString(), CODEC, FPS, _video_processing->get_img_size(), 1);
+
+	if (_video_Writer.isOpened())
+	{
+		if (_imgp_set->get_num_fish() == 1){
+			_data_writer_1.open((new_datafile_name + "_1.txt").toStdString());
+			_data_writer_2.open((new_datafile_name + "_2.txt").toStdString());
+		}
+		else if (_imgp_set->get_num_fish() > 1){
+			_data_writer_3.open((new_datafile_name + "_3.txt").toStdString());
+		}
+
+		// 数据库中写入新的纪录
+		_sys_db->InsertNewRecord(
+			_video_id,
+			_sys_set->get_file_save_path(),
+			_imgp_set->get_num_fish(),
+			QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"),
+			""/*remark*/);
+
+		_video_processing->process_begin();
+		_t->start();
+		LOG << "auto_new_monitor : " << _video_id.toStdString() << endl;
+	}
+	else{
+		QMessageBox::information(nullptr, tr("警告"), tr("无法保存视频!"));
+	}
+}
+//------------------------------------------------------
 void MonitorSystem::time_out_todo(){
 
-	//todo
-	_video_processing->time_out_todo_1();
-
-	if (_isRecord){
-		if (_video_Writer.isOpened()){
-			cv::Mat temp = _video_processing->get_original_img();
-			qDebug() << temp.size().area();
-			this->save_video(temp);//保存视频
-		}
-		else
-		{
-			this->_main_window->statusBar()->showMessage(tr("无法保存视频"));
-		}
+	if (!_video_processing)
+	{
+		//qDebug() << "can not save video";
+		return;
 	}
 
-	++_num_of_frames;
+	// [1] 处理视频中获取的图片
+	_video_processing->time_out_todo_1();
+
+	// [2] 如果是在纪录状态（_isRecord） && 视频保存流打开,则 存储视频与数据
+	if (_isRecord && _video_Writer.isOpened()){
+
+		//视频存储达到指定的时长，则关闭，重新纪录
+		if (_num_of_frames_recoded > VIDEO_LENGTH){
+			auto_monitor_end();
+			auto_new_monitor();
+		}
+
+		// 保存视频文件
+		save_video(_video_processing->get_original_img());//保存视频
+
+		//_video_processing 发送处理后的数据，
+		// this接收，保存 ： receive_data（）中处理了，信号槽自动调用
+		++_num_of_frames;
+	}
+	else{}
+	
 }
 
 void MonitorSystem::save_video(const cv::Mat &image){
-	if (!_video_processing)
-	{
-		qDebug() << "can not save video";
-	}
-	if (_num_of_frames_recoded > 15 * 60 * 60 * 24){ //15*60*60*24 one day
-		_video_Writer.release();
-		_num_of_frames_recoded = 0;
-
-		/*
-		int storage = get_remain_storage(this->_sys_set->get_file_save_path());
-
-		if (storage < 5){  //5:硬盘剩余空间小于5G
-			// 删除最早的文件
-			QString file_del = this->_sys_db->get_del_file_name();
-			if (!file_del.isEmpty()){
-				QFile fileTemp(file_del);
-				fileTemp.remove();
-			}
-		}
-		*/
-		/*
-		QString current_date = QDateTime::currentDateTime().toString("yyyyMMddhhmm");
-
-		QString _video_id = current_date;
-
-		QString new_datafile_name = _sys_set->get_file_save_path() + '/' + current_date;
-		*/
-		this->record();
-	}
-	else{
-		if (!image.empty()){
-			_video_Writer<<image;//_video_processing->get_original_img();
-			++_num_of_frames_recoded;
-		}
-		else{
-			qDebug() << "can not save video  11";
-		}
+	if (!image.empty()){
+		_video_Writer << image;//_video_processing->get_original_img();
+		++_num_of_frames_recoded;
+	}else{
+		this->_main_window->statusBar()->showMessage(tr("无法保存视频"));
+		//todo : 退出
 	}
 }
 

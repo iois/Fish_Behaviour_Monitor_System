@@ -77,7 +77,12 @@ private:
 	void process_end();
 	void exit();
 
+	// 到时间处理
 	void time_out_todo();
+
+	// 监测一段时间（24小时）后，保存视频文件与数据，再自动新建一个监测
+	void auto_monitor_end();  // 自动结束
+	void auto_new_monitor();  // 自动新检测
 
 	void DB_manage();
 	void show_DB_table();

@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <QtWidgets\qwidget.h>
+#include "stdafx.h"
 #include "MyVideoPlayer.h"
 #include "plotdata.h"
 
@@ -29,13 +30,13 @@ public:
 	{
 		for (size_t j = 0; j < dataCruves.size(); ++j)
 		{
-			dataCruves[j]->goto_x(i/15-1);
+			dataCruves[j]->goto_x(i / NUM_FRAMES - 1);
 		}
 
 		cvSetCaptureProperty(_capture, CV_CAP_PROP_POS_FRAMES, i);
 		_Position = i;
 
-		int sec = _Position / 15;
+		int sec = _Position / NUM_FRAMES;
 		int min = sec / 60; sec = sec % 60;
 		int h = min / 60; min = min % 60;
 		if (sec < 10 && min < 10){
@@ -68,7 +69,7 @@ public:
 			this->videoplayer->show_img(_qImg);
 
 			_Position++;
-			if (_Position % 15 == 0)
+			if (_Position % NUM_FRAMES == 0)
 			{
 				this->_grogressbar_horizontalSlider->setValue(_Position);
 				for (plotData* dataCruve : dataCruves)
@@ -100,7 +101,7 @@ public:
 			//qDebug() << _totalFrames;
 			this->_grogressbar_horizontalSlider->setRange(0, _totalFrames);
 
-			int sec = _totalFrames / 15;
+			int sec = _totalFrames / NUM_FRAMES;
 			int min = sec / 60; sec = sec % 60;
 			int h = min / 60; min = min % 60;
 			if (sec < 10 && min < 10){

@@ -4,7 +4,7 @@
 VideoDataDisplayer::VideoDataDisplayer(int num_fish)
 {
 	_timer = new QTimer(this);
-	_timer->setInterval(66);
+	_timer->setInterval(TIME_INTERVAL);
 	setupUI(num_fish);
 	this->num_fish = num_fish;
 }
