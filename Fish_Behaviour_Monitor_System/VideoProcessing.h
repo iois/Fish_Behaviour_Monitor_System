@@ -48,7 +48,10 @@ public:
 	cv::Mat background_pickup(); 
 
 
-	cv::Mat get_original_img(){ return this->_frame; }
+	cv::Mat get_original_img(){ return this->_frame; } // 返回原始的图片
+	cv::Mat get_gray_img(){ return this->_img_temp; }  // 返回原始的图片，灰度
+
+	std::vector<std::vector<cv::Point>> get_fish_contours(){ return _contours; }   //返回当前帧的鱼的轮廓
 
 private:
 
@@ -77,9 +80,13 @@ private:
 	// 视频流捕捉器
 	cv::VideoCapture  _cap;  
 	// 原始图片
-	cv::Mat      _frame;  //RGB
+	cv::Mat      _frame;    //RGB
 	cv::Mat      _img_temp; //gray
+
+	// 用于显示的视频
 	cv::Mat      _img_for_show;
+
+	std::vector<std::vector<cv::Point> > _contours;
 
 	//背景图片
 	cv::Mat _background;

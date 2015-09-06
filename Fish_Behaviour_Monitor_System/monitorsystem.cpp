@@ -335,7 +335,14 @@ void MonitorSystem::time_out_todo(){
 	// [1] 处理视频中获取的图片
 	_video_processing->time_out_todo_1();
 
-	_detect_fish_death.input();
+	vector<float> is_deid=_detect_fish_death.input(_video_processing->get_gray_img(), _video_processing->get_fish_contours());
+
+	for (size_t i = 0; i < is_deid.size(); ++i)
+	{
+		if (is_deid[i] > 0.6){
+			// 死鱼，发出信号
+		}
+	}
 
 	// [2] 如果是在纪录状态（_isRecord） && 视频保存流打开,则 存储视频与数据
 	if (_isRecord && _video_Writer.isOpened()){

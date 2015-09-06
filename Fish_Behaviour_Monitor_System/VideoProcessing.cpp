@@ -252,6 +252,10 @@ void VideoProcessing::time_out_todo_1()
 		{
 			ImgProcessing(_frame, _img_temp, _frame);
 
+			vector<cv::Vec4i> hierarchy;
+			_contours.clear();
+			findContours(_img_temp, _contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
 			if (_img_process_set->get_num_fish() == 1){
 				
 				double speed = _mode_processing->execute(_img_temp, _frame, _img_process_set->get_min_area());
