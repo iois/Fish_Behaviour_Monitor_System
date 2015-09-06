@@ -25,6 +25,8 @@ MonitorSystem这个类为整个系统应用。 包含了所有的东西。
 #include "sendsms.h"
 #include "sendwatertakingsignal.h"
 
+#include"DetectFishDeath.h"
+
 class MonitorSystem : public QWidget
 {
 	Q_OBJECT
@@ -46,6 +48,7 @@ private:
 	SystemSet*     _sys_set;    //系统设置类
 	SysDB*         _sys_db;     //系统数据库类
 
+	DetectFishDeath _detect_fish_death;//检测死亡
 
 	SendSMS               *_sms_sender;
 	SendWaterTakingSignal *_water_taking_siganl_sender;
@@ -72,6 +75,7 @@ private:
 private:
 	void open_camera();
 	void open_file();
+
 	void process_start();
 	void record();
 	void process_end();
@@ -96,6 +100,9 @@ private:
 
 	//接收vp处理得到的数据
 	void receive_data(int index, double val);
+
+	//检测到鱼死亡后，后续操作
+	void fish_died_todo();
 
 	void sendSNS();//发短信
 	void collect_water();//收集水

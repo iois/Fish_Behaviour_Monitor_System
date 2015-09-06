@@ -227,6 +227,8 @@ void MonitorSystem::process_end(){
 	this->_main_window->dock_set->setEnabled(true);
 	this->_main_window->dock_img_process_set->setEnabled(true);
 
+	this->_main_window->opencamera->setEnabled(true);
+	this->_main_window->openfile->setEnabled(true);
 	// todo:
 	// 显示数据 那块 清空
 }
@@ -271,26 +273,19 @@ void MonitorSystem::background_pickup(){
 //------------------------------------------------------
 // 监测一段时间（24小时）后，保存视频文件与数据，再自动新建一个监测
 // 自动结束
-void MonitorSystem::auto_monitor_end(){ // 基本等同process_end（）
-	LOG << "auto_monitor_end : "<< _video_id.toStdString() << endl;
+void MonitorSystem::auto_monitor_end(){  // 主要功能：close video_writer
+	LOG << "auto_monitor_end : " << _video_id.toStdString() << endl;
 	_t->stop();
-	if (_video_processing && _video_processing->_isPrecess){
-
-		if (_video_Writer.isOpened()){
-			_video_Writer.release();
-		}
-		if (_data_writer_1.is_open()) _data_writer_1.close();
-		if (_data_writer_2.is_open()) _data_writer_2.close();
-		if (_data_writer_3.is_open()) _data_writer_3.close();
-		//todo
-		_sys_db->InsertNewRecord_endtime(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"), _video_id);
-	}
+	if (_video_Writer.isOpened()){_video_Writer.release();}
+	if (_data_writer_1.is_open()) _data_writer_1.close();
+	if (_data_writer_2.is_open()) _data_writer_2.close();
+	if (_data_writer_3.is_open()) _data_writer_3.close();
+	//todo
+	_sys_db->InsertNewRecord_endtime(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"), _video_id);
 	_num_of_frames_recoded = 0;
-	// todo:
-	// 显示数据 那块 清空
 }
 // 自动新检测
-void MonitorSystem::auto_new_monitor(){
+void MonitorSystem::auto_new_monitor(){// 主要功能：open a new video_writer
 
 	QString current_date = QDateTime::currentDateTime().toString("yyyyMMddhhmm");
 
@@ -320,7 +315,7 @@ void MonitorSystem::auto_new_monitor(){
 			QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"),
 			""/*remark*/);
 
-		_video_processing->process_begin();
+		//_video_processing->process_begin();
 		_t->start();
 		LOG << "auto_new_monitor : " << _video_id.toStdString() << endl;
 	}
@@ -339,6 +334,8 @@ void MonitorSystem::time_out_todo(){
 
 	// [1] 处理视频中获取的图片
 	_video_processing->time_out_todo_1();
+
+	_detect_fish_death.input();
 
 	// [2] 如果是在纪录状态（_isRecord） && 视频保存流打开,则 存储视频与数据
 	if (_isRecord && _video_Writer.isOpened()){

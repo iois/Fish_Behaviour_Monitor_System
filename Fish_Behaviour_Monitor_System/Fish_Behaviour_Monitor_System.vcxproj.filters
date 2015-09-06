@@ -176,6 +176,9 @@
     <ClCompile Include="sendsms.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DetectFishDeath.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="monitorsystem.h">
@@ -253,6 +256,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DetectFishDeath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
