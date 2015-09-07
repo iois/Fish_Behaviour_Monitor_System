@@ -337,12 +337,13 @@ void MonitorSystem::time_out_todo(){
 	// [1] 处理视频中获取的图片
 	_video_processing->time_out_todo_1();
 	
+
 	// [2] 判断死亡
-	if (_num_of_frames%(NUM_FRAMES*60) == 0){
+	if ((_video_processing->_isPrecess) && (_num_of_frames % (NUM_FRAMES) == 0) ){
 		vector<float> is_deid = _detect_fish_death.input(_video_processing->get_gray_img(), _video_processing->get_fish_contours());
 		for (size_t i = 0; i < is_deid.size(); ++i)
 		{
-			if (is_deid[i] > 0.6){
+			if (is_deid[i] > 0.8){
 				_main_window->ui_warning_view->add_warning_item(2, 0, "死亡！！！");
 				// 死鱼，发出信号
 			}

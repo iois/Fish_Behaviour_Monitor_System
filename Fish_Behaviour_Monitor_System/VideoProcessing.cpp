@@ -363,6 +363,7 @@ cv::Mat VideoProcessing::background_pickup(){
 // 计算 轮廓， 输入为灰度图像，实际只有 黑白 两种颜色
 vector<vector<cv::Point>> VideoProcessing::compute_Contour(cv::Mat &src){
 
+	vector<vector<cv::Point> > contours_temp;
 	vector<vector<cv::Point> > contours;
 	vector<cv::Vec4i> hierarchy;
 
@@ -375,14 +376,13 @@ vector<vector<cv::Point>> VideoProcessing::compute_Contour(cv::Mat &src){
 	for (int i = 0; i < num_cont; ++i)
 	{
 		double s = contourArea(contours[i]);// 计算整个轮廓的面积
-		if (fabs(s) < _img_process_set->get_min_area())
+		if (fabs(s) < _img_process_set->get_min_area() && fabs(s) > _img_process_set->get_max_area())
 		{
 			continue;
 		}
-		else if (fabs(s) > _img_process_set->get_max_area())
-		{
-			continue;
+		else{
+			contours_temp.push_back(contours[i]);
 		}
 	}
-	return contours;
+	return contours_temp;
 }
