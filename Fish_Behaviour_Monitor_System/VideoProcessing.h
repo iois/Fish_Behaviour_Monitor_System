@@ -49,7 +49,7 @@ public:
 
 
 	cv::Mat get_original_img(){ return this->_frame; } // 返回原始的图片
-	cv::Mat get_gray_img(){ return this->_img_temp; }  // 返回原始的图片，灰度
+	cv::Mat get_gray_img(){ return this->_gray_img; }  // 返回原始的图片，灰度
 
 	std::vector<std::vector<cv::Point>> get_fish_contours(){ return _contours; }   //返回当前帧的鱼的轮廓
 
@@ -58,9 +58,12 @@ private:
 	// 图像改变了，向观察者mainwindow 发出通知 
 	void notify();
 
-	// 图片预处理 函数,得到包含目标的灰度图像（dst）
+	// 图片预处理 函数,得到包含目标的灰度图像（dst：非黑即白的灰度图像）
 	IplImage *ImgProcessing(IplImage *src, IplImage *dst, IplImage *img_draw);
-	cv::Mat   ImgProcessing(const cv::Mat &src, cv::Mat &dst, cv::Mat &img_draw);
+	cv::Mat   ImgProcessing(const cv::Mat &src, cv::Mat &dst);
+
+	// 计算 轮廓
+	vector<vector<cv::Point>> VideoProcessing::compute_Contour(cv::Mat &src);
 
 signals:
 	void background_pickup_done();
@@ -80,16 +83,15 @@ private:
 	// 视频流捕捉器
 	cv::VideoCapture  _cap;  
 	// 原始图片
-	cv::Mat      _frame;    //RGB
-	cv::Mat      _img_temp; //gray
-
-	// 用于显示的视频
-	cv::Mat      _img_for_show;
+	cv::Mat      _frame;       //RGB : 原始图片
+	cv::Mat      _gray_img;    //gray: 原始图像的gray版
+	cv::Mat      _img_temp;    //gray: 实际是只有黑白的灰度图像
+	cv::Mat      _img_for_show;//RGB : 用于显示的视频
 
 	std::vector<std::vector<cv::Point> > _contours;
 
 	//背景图片
-	cv::Mat _background;
+	cv::Mat _background;   // 当前版本无用
 
 	int _num_of_frames = 0;
 	cv::Size _img_size;

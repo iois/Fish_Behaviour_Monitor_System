@@ -231,6 +231,8 @@ void MonitorSystem::process_end(){
 	this->_main_window->openfile->setEnabled(true);
 	// todo:
 	// 显示数据 那块 清空
+
+	_num_of_frames = 0;// 当前帧数 设为0
 }
 
 void MonitorSystem::exit(){
@@ -334,13 +336,17 @@ void MonitorSystem::time_out_todo(){
 
 	// [1] 处理视频中获取的图片
 	_video_processing->time_out_todo_1();
-
-	vector<float> is_deid=_detect_fish_death.input(_video_processing->get_gray_img(), _video_processing->get_fish_contours());
-
-	for (size_t i = 0; i < is_deid.size(); ++i)
-	{
-		if (is_deid[i] > 0.6){
-			// 死鱼，发出信号
+	
+	// [2] 判断死亡
+	if (_num_of_frames%(NUM_FRAMES*60) == 0){
+		vector<float> is_deid = _detect_fish_death.input(_video_processing->get_gray_img(), _video_processing->get_fish_contours());
+		for (size_t i = 0; i < is_deid.size(); ++i)
+		{
+			if (is_deid[i] > 0.6){
+				_main_window->ui_warning_view->add_warning_item(2, 0, "死亡！！！");
+				// 死鱼，发出信号
+			}
+			_main_window->ui_data_view_8->updata_data(is_deid[i]);
 		}
 	}
 
@@ -358,10 +364,9 @@ void MonitorSystem::time_out_todo(){
 
 		//_video_processing 发送处理后的数据，
 		// this接收，保存 ： receive_data（）中处理了，信号槽自动调用
-		++_num_of_frames;
 	}
-	else{}
-	
+
+	++_num_of_frames; //当前帧数 +1
 }
 
 void MonitorSystem::save_video(const cv::Mat &image){

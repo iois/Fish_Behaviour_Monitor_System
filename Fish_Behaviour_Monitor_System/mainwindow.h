@@ -95,6 +95,8 @@ private:
 	DataShowWidget *ui_data_view_3;//群聚半径
 	DataShowWidget *ui_data_view_4;//指定半径外鱼条数
 	DataShowWidget *ui_data_view_5;//群簇数量
+	
+public:
 	//其他特征
 	DataShowWidget *ui_data_view_8;//半死亡数
 	DataShowWidget *ui_data_view_9;//死亡条数

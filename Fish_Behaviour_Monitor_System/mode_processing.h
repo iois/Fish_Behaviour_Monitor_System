@@ -10,6 +10,7 @@
 #include"Fish.h"
 #include"ImgProcessSet.h"
 
+using namespace std;
 // 虚类 接口
 class mode_processing
 {
@@ -18,12 +19,13 @@ public:
 	~mode_processing();
 
 	/*纯虚函数--接口*/
-	virtual double execute( cv::Mat &src,  cv::Mat &img_draw, int minContour) = 0;
-	virtual double execute(IplImage *src, IplImage *img_draw, int minContour) = 0; // c++ 风格
-	//virtual double execute(IplImage *src, IplImage *img_draw) = 0;
+	virtual double execute( cv::Mat &src,  cv::Mat &img_draw, int minContour) = 0;// c++ 风格
+	virtual double execute(IplImage *src, IplImage *img_draw, int minContour) = 0; 
+
+	virtual double execute(cv::Mat &src, cv::Mat &img_draw, const vector<vector<cv::Point>> &contours) = 0; // c++ 风格
+
 	ImgProcessSet  *_img_process_set;
 };
-
 
 
 // 接口实现
@@ -34,6 +36,7 @@ public:
 
 	/*virtual*/double execute(IplImage *src, IplImage *img_draw, int minContour);
 	/*virtual*/double execute(cv::Mat &src, cv::Mat &img_draw, int minContour);// c++ 风格
+	/*virtual*/double execute(cv::Mat &src, cv::Mat &img_draw, const vector<vector<cv::Point>> &contours);
 	/*计算速度，移动窗口法*/
 private:
 	CvPoint            _old_point;
@@ -55,7 +58,7 @@ public:
 	WPmode_processing(ImgProcessSet  *img_p_set) :mode_processing(img_p_set){ _old_fish.center = { 0, 0 }; };
 	virtual    double execute(cv::Mat &src, cv::Mat &img_draw, int minContour);
 	/*virtual*/double execute(IplImage *src, IplImage *img_draw, int minContour);
-
+	/*virtual*/double execute(cv::Mat &src, cv::Mat &img_draw, const vector<vector<cv::Point>> &contours);
 	/*计算速度，移动窗口法*/
 private:
 	CvPoint            _old_point;
@@ -76,7 +79,7 @@ public:
 	Clustermode_processing(ImgProcessSet  *img_p_set) :mode_processing(img_p_set){};
 	virtual    double execute(cv::Mat &src, cv::Mat &img_draw, int minContour);
 	/*virtual*/double execute(IplImage *src, IplImage *img_draw, int minContour);
-
+	/*virtual*/double execute(cv::Mat &src, cv::Mat &img_draw, const vector<vector<cv::Point>> &contours);
 private:
 
 	double             speed = 0;

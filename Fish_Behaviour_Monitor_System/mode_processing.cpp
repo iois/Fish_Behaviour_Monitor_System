@@ -38,6 +38,20 @@ double Speedmode_processing::execute(cv::Mat &src, cv::Mat &img_draw, int minCon
 	return this->compute_speed(center);
 }
 
+
+double Speedmode_processing::execute(cv::Mat &src, cv::Mat &img_draw, const vector<vector<cv::Point>> &contours){
+	CvPoint   fish_centerpoint;
+	for (int i = 0; i < contours.size(); ++i)
+	{
+		// 以下程序块：计算、保存每个轮廓（鱼）的重心 (输入cont、num_cont，输出 _fishCenter)
+		Moments m = moments(contours[i]);
+		// 计算重心坐标  这里的重心指的是一条鱼的重心（轮廓的重心）
+		fish_centerpoint.x = m.m10 / m.m00;
+		fish_centerpoint.y = m.m01 / m.m00;
+	}
+	return this->compute_speed(fish_centerpoint);
+}
+
 CvPoint Speedmode_processing::compute_Contour(IplImage *src, IplImage *img_draw, int minContour){
 	CvSeq        *_cont;      //用于存储轮廓的结构
 	CvMemStorage *_stor;      //
@@ -195,7 +209,6 @@ Fish WPmode_processing::compute_Contour(cv::Mat &src, cv::Mat &img_draw, int min
 	Fish fish;
 
 	int num_cont = contours.size();      // 轮廓数
-	CvPoint   fish_centerpoint;
 
 	// 计算得到每一条鱼的中心， 保持在 _fishCenter 中
 	for (int i = 1; i < num_cont; ++i)
@@ -255,7 +268,14 @@ double WPmode_processing::execute(cv::Mat &src, cv::Mat &img_draw, int minContou
 	Fish center = compute_Contour(src, img_draw, minContour);
 	return this->compute_WP(center);
 }
-
+double WPmode_processing::execute(cv::Mat &src, cv::Mat &img_draw, const vector<vector<cv::Point>> &contours){
+	Fish fish;
+	for (int i = 0; i < contours.size(); ++i)
+	{
+		fish = Fish(contours[i]);
+	}
+	return this->compute_WP(fish);
+}
 //-----------------------------------------------------------------------------------------------
 
 double Clustermode_processing::execute(IplImage *src, IplImage *img_draw, int minContour)
@@ -264,11 +284,38 @@ double Clustermode_processing::execute(IplImage *src, IplImage *img_draw, int mi
 	compute_Contour(src, img_draw, minContour, _fishCenter);
 	return compute_R(_fishCenter, img_draw);
 }
+
 double Clustermode_processing::execute(cv::Mat &src, cv::Mat &img_draw, int minContour){
 	_fishCenter.clear();
 	compute_Contour(src, img_draw, minContour, _fishCenter);
 	return this->compute_R(_fishCenter, img_draw);
 }
+
+double Clustermode_processing::execute(cv::Mat &src, cv::Mat &img_draw, const vector<vector<cv::Point>> &contours){
+	_fishCenter.clear();
+	CvPoint   fish_centerpoint;
+
+	// 计算得到每一条鱼的中心， 保持在 _fishCenter 中
+	for (int i = 0; i < contours.size(); ++i)
+	{
+		double s = contourArea(contours[i]);// 计算整个轮廓的面积
+		if (fabs(s) < _img_process_set->get_min_area())
+		{
+			continue;
+		}
+		else if (fabs(s) > _img_process_set->get_max_area())
+		{
+			continue;
+		}
+
+		drawContours(img_draw, contours, i, CV_RGB(0, 255, 0), 1, 8);
+
+		Fish fish = Fish(contours[i]);
+		_fishCenter.push_back(fish.center);
+	}
+	return this->compute_R(_fishCenter, img_draw);
+}
+
 void Clustermode_processing::compute_Contour(IplImage *src, IplImage *img_draw, int minContour,
 	std::vector<CvPoint>& fishCenter)
 {
@@ -303,6 +350,7 @@ void Clustermode_processing::compute_Contour(IplImage *src, IplImage *img_draw, 
 	}
 	cvReleaseMemStorage(&_stor);// 内存泄漏是这里的问题。之前分配空间在Init（）中，没有cvReleaseMemStorage(&_stor);，内存泄漏	
 }
+
 void Clustermode_processing::compute_Contour(Mat &src, Mat &img_draw, int minContour, std::vector<CvPoint>& fishCenter){
 
 	vector<vector<Point> > contours;
@@ -364,6 +412,7 @@ int Clustermode_processing::compute_R(std::vector<CvPoint>& fishCenter, IplImage
 	//_all_triangles_center;
 	return _r;
 }
+
 int Clustermode_processing::compute_R(std::vector<CvPoint>& fishCenter, cv::Mat &img_draw){
 
 	int _r = 0;
@@ -396,6 +445,7 @@ int Clustermode_processing::compute_R(std::vector<CvPoint>& fishCenter, cv::Mat 
 	//_all_triangles_center;
 	return _r;
 }
+
 CvPoint Clustermode_processing::_Delaunay(std::vector<CvPoint> points, IplImage *dst){
 	if (points.size() < 1){
 		return{ 0, 0 };

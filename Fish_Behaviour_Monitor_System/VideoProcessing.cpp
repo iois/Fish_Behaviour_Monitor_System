@@ -147,13 +147,16 @@ IplImage* VideoProcessing::ImgProcessing(IplImage *src, IplImage *dst, IplImage 
 	return dst;
 }
 
-cv::Mat VideoProcessing::ImgProcessing(const cv::Mat &src, cv::Mat &dst, cv::Mat &img_draw)
+cv::Mat VideoProcessing::ImgProcessing(const cv::Mat &src, cv::Mat &dst)
 {
-
+	// ¡¾1¡¿
+	cvtColor(src, this->_gray_img, CV_BGR2GRAY);  // ²ÊÉ«Í¼Ïñ×ª»¯³É»Ò¶ÈÍ¼Ïñ
+	
+	// ¡¾2¡¿
 	cv::Mat temp_rgb;//²»ÄÜcv::Mat temp_rgb£¨src£©, Ç³¿½±´
 	src.copyTo(temp_rgb);
 
-	GaussianBlur(dst, dst, cv::Size(7,7), 0, 0); //¸ßË¹
+	GaussianBlur(temp_rgb, temp_rgb, cv::Size(7, 7), 0, 0); //¸ßË¹
 	
 	// Ä¿±ê·Ö¸î: 
 
@@ -176,7 +179,6 @@ cv::Mat VideoProcessing::ImgProcessing(const cv::Mat &src, cv::Mat &dst, cv::Mat
 	medianBlur(dst, dst, 3);
 	GaussianBlur(dst, dst, cv::Size(5,5), 0, 0); //¸ßË¹ÂË²¨
 
-	
 	//bitwise_xor(cv::Scalar(255, 0, 0, 0), dst, dst);//xor,ÑÕÉ«È¡·´
 	//cv::imshow("Display Image2", dst);
 
@@ -246,33 +248,32 @@ void VideoProcessing::time_out_todo_1()
 	
 	//´ÓCvCaptureÖĞ»ñµÃÒ»Ö¡
 	_cap >> _frame;
+
+	_frame.copyTo(_img_for_show);
+
+	// Èç¹û¿ªÊ¼´¦Àí
+	if (_isPrecess)
 	{
-		// Èç¹û¿ªÊ¼´¦Àí
-		if (_isPrecess)
-		{
-			ImgProcessing(_frame, _img_temp, _frame);
+		ImgProcessing(_frame, _img_temp);  // ´¦ÀíÍ¼Ïñ
 
-			vector<cv::Vec4i> hierarchy;
-			_contours.clear();
-			findContours(_img_temp, _contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+		_contours.clear();
+		_contours = this->compute_Contour(_img_temp);
 
-			if (_img_process_set->get_num_fish() == 1){
-				
-				double speed = _mode_processing->execute(_img_temp, _frame, _img_process_set->get_min_area());
-				double wp = _mode_processing_wp->execute(_img_temp, _frame, _img_process_set->get_min_area());
+		if (_img_process_set->get_num_fish() == 1){
 
-				emit send_data_signal(1, speed);
-				emit send_data_signal(2, wp);
-				
-			}
-			else if (_img_process_set->get_num_fish() > 1)
-			{
-				double r = _mode_processing_Cluster->execute(_img_temp, _frame, _img_process_set->get_min_area());
+			double speed = _mode_processing->execute(_img_temp, _img_for_show, _contours);
+			double wp = _mode_processing_wp->execute(_img_temp, _img_for_show, _contours);
 
-				emit send_data_signal(3, r);
-			}
+			emit send_data_signal(1, speed);
+			emit send_data_signal(2, wp);
+
+		}else if (_img_process_set->get_num_fish() > 1){
+			double r = _mode_processing_Cluster->execute(_img_temp, _img_for_show, _contours);
+
+			emit send_data_signal(3, r);
 		}
 	}
+
 	//bitwise_xor(cv::Scalar(255, 0, 0, 0), _frame, _frame);//xor,ÑÕÉ«È¡·´
 	++_num_of_frames;
 	this->notify();
@@ -282,7 +283,7 @@ void VideoProcessing::notify()// Í¼Ïñ »ò Êı¾İ ¸Ä±äÁË£¬Ïò¹Û²ìÕßmainwindow ·¢³öÍ¨Ö
 {
 	if (_main_window)
 	{
-		_main_window->updata_img(_frame);
+		_main_window->updata_img(_img_for_show);
 	}
 }
 
@@ -354,4 +355,34 @@ cv::Mat VideoProcessing::background_pickup(){
 	else{}
 
 	return background;
+}
+
+
+
+
+// ¼ÆËã ÂÖÀª£¬ ÊäÈëÎª»Ò¶ÈÍ¼Ïñ£¬Êµ¼ÊÖ»ÓĞ ºÚ°× Á½ÖÖÑÕÉ«
+vector<vector<cv::Point>> VideoProcessing::compute_Contour(cv::Mat &src){
+
+	vector<vector<cv::Point> > contours;
+	vector<cv::Vec4i> hierarchy;
+
+	cv::findContours(src, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+
+	int num_cont = contours.size();      // ÂÖÀªÊı
+	CvPoint   fish_centerpoint;
+
+	// ¼ÆËãµÃµ½Ã¿Ò»ÌõÓãµÄÖĞĞÄ£¬ ±£³ÖÔÚ _fishCenter ÖĞ
+	for (int i = 0; i < num_cont; ++i)
+	{
+		double s = contourArea(contours[i]);// ¼ÆËãÕû¸öÂÖÀªµÄÃæ»ı
+		if (fabs(s) < _img_process_set->get_min_area())
+		{
+			continue;
+		}
+		else if (fabs(s) > _img_process_set->get_max_area())
+		{
+			continue;
+		}
+	}
+	return contours;
 }

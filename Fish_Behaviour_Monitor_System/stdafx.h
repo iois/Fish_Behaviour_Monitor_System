@@ -26,6 +26,6 @@ const int REMAIN_STORAGE = 5;//5G容量
 
 const std::string LOG_FILE_NAME = "log.dat";
 
-const int VIDEO_LENGTH = NUM_FRAMES * 120;// *60 * 24; // 一天
+const int VIDEO_LENGTH = NUM_FRAMES * 60*60 * 24; // 一天
 
 // TODO: reference additional headers your program requires here
