@@ -223,8 +223,10 @@ std::vector<float> DetectFishDeath::input(const cv::Mat& input_image, const std:
 		cv::Mat fish_rect_gray = input_image(r);
 
 		char file[100];
-		sprintf(file, "fish_%d_%d.jpg",j,i);
-		cv::imwrite(file, fish_rect_gray);
+
+		// 保存 样本文件
+		//sprintf(file, "fish_%d_%d.jpg",j,i);
+		//cv::imwrite(file, fish_rect_gray);
 
 		p.push_back(this->detect(fish_rect_gray));
 
