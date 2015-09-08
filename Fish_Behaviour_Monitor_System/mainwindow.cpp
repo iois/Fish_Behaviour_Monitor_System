@@ -164,6 +164,9 @@ void MainWindow::createActions()
 	DB_manage_Act = new QAction(QIcon("images/DB.ico"), tr("&数据库管理"), this);
 	DB_manage_Act->setStatusTip(tr("数据库管理"));
 
+	DB_user_manage_Act = new QAction(QIcon("images/DB.ico"), tr("&用户管理"), this);
+	DB_user_manage_Act->setStatusTip(tr("用户管理"));
+
 	endAct = new QAction(QIcon("images/end.ico"), tr("&结束处理"), this);
 	endAct->setStatusTip(tr("结束处理"));
 	//connect(endAct, SIGNAL(triggered()), this, SLOT(process_end()));
@@ -189,6 +192,7 @@ void MainWindow::createMenus(){
 
 	DBMenu = menuBar()->addMenu(tr("&数据库"));
 	DBMenu->addAction(DB_manage_Act);
+	DBMenu->addAction(DB_user_manage_Act);
 
 	SetMenu = menuBar()->addMenu(tr("&设置"));
 	SetMenu->addAction(setAct);

@@ -61,6 +61,7 @@ void MonitorSystem::init(){
 
 	img_p_set = new ImgProcessSet_view(_imgp_set);
 
+
 	//init over-----------------------------------------------------//
 }
 
@@ -74,6 +75,7 @@ void MonitorSystem::connect_signal_slot(){
 	connect(_main_window->exitAct, &QAction::triggered, this, &MonitorSystem::exit);
 
 	connect(_main_window->DB_manage_Act, &QAction::triggered, this, &MonitorSystem::show_DB_table);
+	connect(_main_window->DB_user_manage_Act, &QAction::triggered, this, &MonitorSystem::show_User_table);
 
 	//connect(_main_window->background_pickup_Act, &QAction::triggered, this, &MonitorSystem::background_pickup);
 
@@ -250,9 +252,15 @@ void MonitorSystem::exit(){
 
 void MonitorSystem::show_DB_table()
 {
-	qDebug() << "db_view";
+	//qDebug() << "db_view";
 	SysDB_view* db_view = SysDB_view::instance(0, _sys_db);
 	db_view->show();
+}
+
+void MonitorSystem::show_User_table(){
+	//User_Tab_view* db_user_view = User_Tab_view::instance(0, _sys_db);
+	User_Tab_view* db_user_view = new User_Tab_view(0, _sys_db);
+	db_user_view->show();
 }
 
 void MonitorSystem::background_pickup(){
@@ -346,6 +354,7 @@ void MonitorSystem::time_out_todo(){
 			if (is_deid[i] > 0.8){
 				_main_window->ui_warning_view->add_warning_item(2, 0, "死亡！！！");
 				// 死鱼，发出信号
+				fish_died_todo();
 			}
 			_main_window->ui_data_view_8->updata_data(is_deid[i]);
 		}
@@ -565,3 +574,8 @@ void VideoProcessing::send_data(size_t modeIndex, double data){
 	
 }
 */
+
+
+void MonitorSystem::fish_died_todo(){
+	_water_taking_siganl_sender->send(5);
+}

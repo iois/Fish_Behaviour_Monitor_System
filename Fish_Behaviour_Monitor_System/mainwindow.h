@@ -54,6 +54,7 @@ public:
 	QAction *setviewdefaultAct;
 	QAction *setAct;
 	QAction *DB_manage_Act;
+	QAction *DB_user_manage_Act;
 	QAction *aboutAct;
 	QAction *exitAct;
 

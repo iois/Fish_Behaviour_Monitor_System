@@ -160,6 +160,18 @@ QString SysDB::get_del_file_name(){
 	return path + name;
 }
 
+
+std::vector<QString> SysDB::get_phone_numbers(){
+	std::vector<QString> phone_numbers;
+	QSqlQuery query;
+	if (query.exec(tr("select phone from Users_tab order by user_id"))){
+		while (query.next()){
+			phone_numbers.push_back(query.value(0).toString());
+		}
+	}
+	return phone_numbers;
+}
+
 /***************************************************************************/
 
 SysDB_view* SysDB_view::_instance = nullptr;
@@ -367,4 +379,148 @@ void SysDB_view::on_tableView_doubleClicked(const QModelIndex &index){
 		delete vd_player;
 	}
 	
+}
+
+
+//----------------------------------------------------------------------------
+
+#include<QHeaderView>
+#include<qdebug.h>
+
+User_Tab_view::User_Tab_view(QWidget *parent, SysDB *sys_db) : QWidget(parent)
+{
+	// 打开数据库文件
+	_sys_db = sys_db;
+
+	//链接数据库模型model到数据库的指定表
+	QString tableName = "Users_tab";
+	model = new QSqlTableModel(this, _sys_db->CurrentDatabase());
+	model->setTable(tableName); // 链接到指定的表
+	model->setEditStrategy(QSqlTableModel::OnManualSubmit);
+	model->select();
+
+	model->setHeaderData(model->fieldIndex("user_id"), Qt::Horizontal, tr("用户ID"));
+	model->setHeaderData(model->fieldIndex("name"), Qt::Horizontal, tr("用户名称"));
+	model->setHeaderData(model->fieldIndex("phone"), Qt::Horizontal, tr("用户手机号码 "));
+
+	// 数据库视图view，连接到数据库模型model
+	//! [0] //! [1]
+	view = new QTableView;
+	view->setModel(model);
+	view->resizeColumnsToContents();
+	view->horizontalHeader()->setStretchLastSection(true);
+	//! [1]
+
+	//! [2]
+	submitButton = new QPushButton(tr("提交"));
+	submitButton->setDefault(true);
+	revertButton = new QPushButton(tr("重置"));
+	quitButton = new QPushButton(tr("退出~"));
+
+	add_Button = new QPushButton(tr("添加"));
+	del_Button = new QPushButton(tr("删除"));
+
+	buttonBox = new QDialogButtonBox(Qt::Vertical);
+	buttonBox->addButton(submitButton, QDialogButtonBox::ActionRole);
+
+	buttonBox->addButton(add_Button, QDialogButtonBox::ActionRole);
+	buttonBox->addButton(del_Button, QDialogButtonBox::ActionRole);
+
+	buttonBox->addButton(revertButton, QDialogButtonBox::ActionRole);
+	buttonBox->addButton(quitButton, QDialogButtonBox::RejectRole);
+	//! [2]
+
+	//! [3]
+	connect(submitButton, SIGNAL(clicked()), this, SLOT(submit()));
+	connect(revertButton, SIGNAL(clicked()), model, SLOT(revertAll()));
+	connect(quitButton, SIGNAL(clicked()), this, SLOT(close()));
+
+	connect(add_Button, SIGNAL(clicked()), this, SLOT(add_user()));
+	connect(del_Button, SIGNAL(clicked()), this, SLOT(delete_user()));
+	//! [3]
+
+	explain_label = new QLabel();
+	explain_label->setText(tr("提示: \n任何修改后应点击“提交”按钮，否则修改无效! \n点击“重置”按钮恢复到上一次提交后的状态~"));
+
+	//! [4]
+
+	QVBoxLayout *Layout = new QVBoxLayout;
+	QHBoxLayout *mainLayout = new QHBoxLayout;
+
+	mainLayout->addWidget(view);
+	mainLayout->addWidget(buttonBox);
+
+	Layout->addLayout(mainLayout);
+	Layout->addWidget(explain_label);
+	setLayout(Layout);
+	setWindowTitle(tr("联系人员管理"));
+}
+
+User_Tab_view::~User_Tab_view()
+{
+
+}
+
+// 提交操作：提交后所有的修改才有效果
+//! [5]
+void User_Tab_view::submit()
+{
+	model->database().transaction();
+	if (model->submitAll()) {
+		model->database().commit();
+	}
+	else {
+		model->database().rollback();
+		QMessageBox::warning(this, tr("Cached Table"),
+			tr("The database reported an error: %1")
+			.arg(model->lastError().text()));
+	}
+}
+//! [5]
+
+
+void User_Tab_view::add_user(){
+
+	int next_user_id = 1;
+	QSqlQuery query;
+	if (query.exec(tr("select user_id from Users_tab order by user_id"))){
+		while (query.next()){
+			next_user_id = query.value(0).toInt() + 1;
+		}
+	}
+
+	// 添加新的一行： 方法1
+	/*
+	if (query.exec(tr("INSERT INTO Users_tab VALUES ('%1','%2','%3')")
+	.arg(next_user_id)
+	.arg("")
+	.arg("")
+	)){
+	model->select();
+	}else{
+	QMessageBox::critical(0, QObject::tr("Database Error"),query.lastError().text());
+	}
+	*/
+
+	// 添加新的一行： 方法2 （比较方法1 ，更好）
+	int rowNum = model->rowCount();//获得表的行数
+	model->insertRow(rowNum); //添加一行
+	model->setData(model->index(rowNum, 0), next_user_id);
+}
+
+void User_Tab_view::delete_user(){
+	int curRow = view->currentIndex().row();
+	//获取选中的行
+	model->removeRow(curRow);
+}
+
+std::vector<QString> User_Tab_view::get_phone_numbers(){
+	std::vector<QString> phone_numbers;
+	QSqlQuery query;
+	if (query.exec(tr("select phone from Users_tab order by user_id"))){
+		while (query.next()){
+			phone_numbers.push_back(query.value(0).toString());
+		}
+	}
+	return phone_numbers;
 }

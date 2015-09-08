@@ -26,8 +26,7 @@
 
 #include"VideoDataDisplayer.h"
 
-class SysDB :
-	public QObject
+class SysDB : public QObject
 {
 	Q_OBJECT
 public:
@@ -54,7 +53,11 @@ public:
 	// [2]更新结束时间
 	bool InsertNewRecord_endtime(QString time_end, QString video_id);
 
+	// 返回要删除的文件的路径和文件名
 	QString get_del_file_name();
+
+	// 返回所有人员的手机号码
+	std::vector<QString> get_phone_numbers();
 
 signals:
 	void DBChanged(); // 数据库内容发生变化  //只在内部发出
@@ -117,5 +120,44 @@ private:
 	void setupModel();
 
 	QModelIndex current_index;//
+};
+
+
+class User_Tab_view : public QWidget
+{
+	Q_OBJECT
+public:
+	static User_Tab_view *_instance;//唯一实例 指针
+	static User_Tab_view *instance(QWidget *parent = 0, SysDB *s = 0)
+	{
+		if (!_instance)
+			_instance = new User_Tab_view(parent, s);
+		return _instance;
+	}
+
+	User_Tab_view(QWidget *parent = 0, SysDB *sys_db = 0);
+	~User_Tab_view();
+
+	std::vector<QString> get_phone_numbers();
+
+
+private slots:
+	void submit();
+	void add_user();
+	void delete_user();
+
+private:
+	QLabel *explain_label;
+
+	QPushButton *submitButton;
+	QPushButton *add_Button;
+	QPushButton *del_Button;
+	QPushButton *revertButton;
+	QPushButton *quitButton;
+	QDialogButtonBox *buttonBox;
+
+	QSqlTableModel *model;
+	QTableView *view;
+	SysDB *_sys_db;
 };
 

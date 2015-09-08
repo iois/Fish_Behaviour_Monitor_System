@@ -90,6 +90,7 @@ private:
 
 	void DB_manage();
 	void show_DB_table();
+	void show_User_table();
 
 	//获取背景图片
 	void background_pickup();
