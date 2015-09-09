@@ -26,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent, VideoProcessing *vp): QMainWindow(parent
 	// [5]
 	setupToolBar();
 
-	this->setWindowTitle(tr("水质检测系统 V1.2"));
+	this->setWindowTitle(tr("水质检测系统 V1.3"));
 	this->setWindowIcon(QIcon("images/system.ico"));
 
 	_video_processing->attach(this);
@@ -71,10 +71,10 @@ void MainWindow::setupUi()
 	vLayout_other->setContentsMargins(5, 5, 0, 0);
 
 	ui_data_view_8->set_title("死亡:");
-	ui_data_view_8->set_unit("条");
+	ui_data_view_8->set_unit("");
 	vLayout_other->addWidget(ui_data_view_8);
 	ui_data_view_9->set_title("半死亡:");
-	ui_data_view_9->set_unit("条");
+	ui_data_view_9->set_unit("");
 	vLayout_other->addWidget(ui_data_view_9);
 
 	data_show_1 = new QWidget(this);
@@ -175,6 +175,10 @@ void MainWindow::createActions()
 	recodeAct = new QAction(QIcon("images/record.ico"), tr("&开始记录"), this);
 	recodeAct->setStatusTip(tr("记录"));
 	//connect(recodeAct, SIGNAL(triggered()), this, SLOT(record()));
+
+
+	_water_taking_sender_set_Act = new QAction(QIcon("images/set.ico"), tr("&取水串口设置"), this);
+	_sms_sender_Act = new QAction(QIcon("images/set.ico"), tr("&短信串口设置"), this);
 }
 
 // [4]
@@ -196,6 +200,8 @@ void MainWindow::createMenus(){
 
 	SetMenu = menuBar()->addMenu(tr("&设置"));
 	SetMenu->addAction(setAct);
+	SetMenu->addAction(_water_taking_sender_set_Act);
+	SetMenu->addAction(_sms_sender_Act);
 
 	ViewSetMenu = menuBar()->addMenu(tr("&视图"));
 	ViewSetMenu->addAction(setviewdefaultAct);

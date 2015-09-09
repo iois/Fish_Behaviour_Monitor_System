@@ -58,6 +58,9 @@ public:
 	QAction *aboutAct;
 	QAction *exitAct;
 
+	QAction *_water_taking_sender_set_Act;
+	QAction *_sms_sender_Act;
+
 private:
 	// Menu
 	void createMenus();

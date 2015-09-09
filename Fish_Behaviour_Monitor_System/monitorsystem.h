@@ -108,6 +108,9 @@ private:
 	void sendSNS();//发短信
 	void collect_water();//收集水
 
+	void send_sms_set();
+	void water_taking_set();
+
 	// 日志文件
 	std::fstream LOG;
 };

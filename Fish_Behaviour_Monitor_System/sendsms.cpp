@@ -102,7 +102,7 @@ SendSMS_view::SendSMS_view(QWidget *parent, SendSMS *sendsms)
         mainLayout->addWidget(statusLabel, 5, 0, 1, 5);
         setLayout(mainLayout);
 
-        setWindowTitle(tr("Blocking Master"));
+        setWindowTitle(tr("短信串口设置"));
         serialPortComboBox->setFocus();
 
         waitResponseSpinBox->setRange(0, 1000*180);

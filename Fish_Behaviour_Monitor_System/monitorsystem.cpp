@@ -23,6 +23,9 @@ MonitorSystem::MonitorSystem(QWidget *parent): QWidget(parent)
 	QString current_date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
 	LOG << "--------------------------------------" << endl;
 	LOG << current_date.toStdString() << " : open system." << endl;
+
+	_sms_sender_view = new SendSMS_view(0, _sms_sender);
+	_water_taking_siganl_sender_view = new SendWaterTakingSignal_view(0, _water_taking_siganl_sender);
 }
 
 MonitorSystem::~MonitorSystem()
@@ -82,6 +85,10 @@ void MonitorSystem::connect_signal_slot(){
 	connect(_t, &QTimer::timeout, this, &MonitorSystem::time_out_todo);
 
 	connect(_video_processing, &VideoProcessing::send_data_signal, this, &MonitorSystem::receive_data);
+
+
+	connect(_main_window->_sms_sender_Act, &QAction::triggered, this, &MonitorSystem::send_sms_set);
+	connect(_main_window->_water_taking_sender_set_Act, &QAction::triggered, this, &MonitorSystem::water_taking_set);
 }
 
 void MonitorSystem::open_camera(){
@@ -611,4 +618,12 @@ void MonitorSystem::fish_died_todo(){
 			LOG << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm").toStdString() << " : take water. " << endl;
 		}
 	}
+}
+
+
+void MonitorSystem::send_sms_set(){
+	_sms_sender_view->show();
+}
+void MonitorSystem::water_taking_set(){
+	_water_taking_siganl_sender_view->show();
 }

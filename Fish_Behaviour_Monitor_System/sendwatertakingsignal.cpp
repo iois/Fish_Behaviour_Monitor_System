@@ -116,7 +116,7 @@ SendWaterTakingSignal_view::SendWaterTakingSignal_view(QWidget *parent, SendWate
         mainLayout->addWidget(statusLabel, 5, 0, 1, 5);
         setLayout(mainLayout);
 
-        setWindowTitle(tr("测试取水"));
+        setWindowTitle(tr("取水串口设置"));
         serialPortComboBox->setFocus();
 
         waitResponseSpinBox->setRange(0, 1000 * 180);
