@@ -66,13 +66,13 @@ void WarningViewWidget::add_warning_item(size_t degree, int modeindex, QString t
 	switch (modeindex)
 	{
 	case 1:
-		mode = tr("速度异常! ");
+		mode = tr("速度异常");
 		break;
 	case 2:
-		mode = tr("尾频异常! ");
+		mode = tr("尾频异常~");
 		break;
 	default:
-		mode = tr("其他异常! ");
+		mode = tr("其他异常");
 		break;
 	}
 	mode += text;

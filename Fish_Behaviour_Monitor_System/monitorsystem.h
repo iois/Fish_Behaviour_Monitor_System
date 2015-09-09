@@ -61,7 +61,7 @@ private:
 	SystemSetView_dock *set_view;
 	//
 
-	int _isRecord = 1;
+	int _isRecord = 0;
 	unsigned int _num_of_frames_recoded = 0;
 	unsigned int _num_of_frames = 0;
 

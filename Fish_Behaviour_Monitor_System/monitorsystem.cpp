@@ -94,6 +94,7 @@ void MonitorSystem::open_camera(){
 
 	_main_window->opencamera->setEnabled(false);
 	_main_window->startAct->setEnabled(true);
+	_main_window->endAct->setEnabled(false);
 }
 
 void MonitorSystem::open_file()
@@ -347,14 +348,19 @@ void MonitorSystem::time_out_todo(){
 	
 
 	// [2] 判断死亡
-	if ((_video_processing->_isPrecess) && (_num_of_frames % (NUM_FRAMES) == 0) ){
+	if ((_video_processing->_isPrecess) && (_num_of_frames % (NUM_FRAMES*2) == 0) ){
+
 		vector<float> is_deid = _detect_fish_death.input(_video_processing->get_gray_img(), _video_processing->get_fish_contours());
+		
 		for (size_t i = 0; i < is_deid.size(); ++i)
 		{
 			if (is_deid[i] > 0.8){
-				_main_window->ui_warning_view->add_warning_item(2, 0, "死亡！！！");
+
 				// 死鱼，发出信号
+				QString current_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
+				_main_window->ui_warning_view->add_warning_item(2, 0, tr(": %1 检测到死亡").arg(current_time));
 				fish_died_todo();
+
 			}
 			_main_window->ui_data_view_8->updata_data(is_deid[i]);
 		}
@@ -577,5 +583,32 @@ void VideoProcessing::send_data(size_t modeIndex, double data){
 
 
 void MonitorSystem::fish_died_todo(){
-	_water_taking_siganl_sender->send(5);
+
+	static int num_taking_water_flag = 0;
+	static int send_sms_flag = 0;
+
+	// 设置栏中勾选了
+	if (this->set_view->ui_send_sms_CheckBox->isChecked() && _isRecord && send_sms_flag <2){
+
+		std::vector<QString> phones = _sys_db->get_phone_numbers();
+		QString current_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
+		for each (QString phone in phones)
+		{
+			_sms_sender->send(phone, tr("【生物（鱼）水质变化检测系统】检测到死亡,时间%1").arg(current_time));
+		}
+		LOG << current_time.toStdString() << " : send sms. " << endl;
+		++send_sms_flag ;
+	}
+
+	// 设置栏中勾选了
+	if (this->set_view->ui_take_water_CheckBox->isChecked() && _isRecord && num_taking_water_flag<10){
+		{
+			_water_taking_siganl_sender->send(5);
+
+			num_taking_water_flag = _video_id.toInt();
+
+			++num_taking_water_flag;
+			LOG << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm").toStdString() << " : take water. " << endl;
+		}
+	}
 }

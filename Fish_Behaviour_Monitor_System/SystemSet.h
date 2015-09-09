@@ -238,4 +238,8 @@ private:
 	QSpinBox  *ui_WPthreshold;
 	QCheckBox *ui_recordviedo_CheckBox;
 	QCheckBox *ui_recorddata_CheckBox;
+
+public:
+	QCheckBox *ui_send_sms_CheckBox;
+	QCheckBox *ui_take_water_CheckBox;
 };

@@ -375,11 +375,16 @@ void SystemSetView_dock::set_up_UI()
 	QLabel* ui_WPthreshold_label = new QLabel(this);
 	ui_WPthreshold_label->setText(tr("尾频阈值："));
 
+	/*
 	ui_recordviedo_CheckBox = new QCheckBox(tr("记录视频"));
 	ui_recorddata_CheckBox = new QCheckBox(tr("记录数据"));
 	ui_recordviedo_CheckBox->setEnabled(false);
 	ui_recorddata_CheckBox->setEnabled(false);
-
+	*/
+	ui_send_sms_CheckBox = new QCheckBox(tr("检测到异常发送短信提示"));
+	ui_send_sms_CheckBox->setChecked(true);
+	ui_take_water_CheckBox = new QCheckBox(tr("检测到异常收集水样"));;
+	ui_take_water_CheckBox->setChecked(true);
 
 	// 
 	QGridLayout* ui_grid_layout_main = new QGridLayout(this);
@@ -416,8 +421,11 @@ void SystemSetView_dock::set_up_UI()
 	ui_grid_layout_main->addWidget(ui_speedthreshold, 13, 1);
 	ui_grid_layout_main->addWidget(ui_WPthreshold_label, 14, 0);
 	ui_grid_layout_main->addWidget(ui_WPthreshold, 14, 1);
-	ui_grid_layout_main->addWidget(ui_recordviedo_CheckBox, 15, 0);
-	ui_grid_layout_main->addWidget(ui_recorddata_CheckBox, 16, 0);
+
+	//ui_grid_layout_main->addWidget(ui_recordviedo_CheckBox, 15, 0);
+	//ui_grid_layout_main->addWidget(ui_recorddata_CheckBox, 16, 0);
+	ui_grid_layout_main->addWidget(ui_send_sms_CheckBox, 15, 0);
+	ui_grid_layout_main->addWidget(ui_take_water_CheckBox, 16, 0);
 
 	ui_grid_layout_main->addWidget(sure_Button,18, 1);
 
@@ -436,6 +444,7 @@ void SystemSetView_dock::setup_data(){
 	this->ui_speedthreshold->setValue(this->_sys_set->_speedthreshold);
 	this->ui_WPthreshold->setValue(this->_sys_set->_WPthreshold);
 
+	/*
 	if (this->_sys_set->_isrecordData){
 		this->ui_recorddata_CheckBox->setCheckState(Qt::Checked);
 	}
@@ -449,6 +458,7 @@ void SystemSetView_dock::setup_data(){
 	else{
 		this->ui_recordviedo_CheckBox->setCheckState(Qt::Unchecked);
 	}
+	*/
 
 	/*
 	{

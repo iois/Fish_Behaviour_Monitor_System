@@ -1,4 +1,5 @@
 #pragma once
+#pragma execution_character_set("utf-8")//解决中文乱码
 #include "qwidget.h"
 
 #include<QtWidgets\qwidget.h>
