@@ -81,6 +81,7 @@
   <ItemGroup>
     <ClCompile Include="DataShowWidget.cpp" />
     <ClCompile Include="DetectFishDeath.cpp" />
+    <ClCompile Include="DetectFishDeth.cpp" />
     <ClCompile Include="Fish.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_ImgProcessSet.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -493,6 +494,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DetectFishDeath.h" />
+    <ClInclude Include="DetectFishDeth.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -93,7 +93,7 @@ public:
 	QWidget *data_show_1;
 	QWidget *data_show_2;
 	QWidget *data_show_3;
-private:	
+
 	DataShowWidget *ui_data_view_1;//速度
 	DataShowWidget *ui_data_view_2;//尾频
 	DataShowWidget *ui_data_view_3;//群聚半径
@@ -113,6 +113,7 @@ public:	//给 video_processing 调用
 	void updata_img(IplImage *src);//观察vp的变化->显示图像
 	void updata_img(const cv::Mat &mat); //观察vp的变化->显示图像
 	void updata_data(size_t modeIndex, double data); // 
+	void updata_data(size_t modeIndex, vector<double> data); // 
 
 public slots:
 	void system_set();

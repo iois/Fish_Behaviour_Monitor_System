@@ -1,6 +1,24 @@
 ﻿#include "monitorsystem.h"
 #include<QtCore\qdebug.h>
 
+
+/*
+int    DetectFishDeth::SIZE_FRAME = 15;
+double DetectFishDeth::MAX_SPEED = 60;
+double DetectFishDeth::MAX_AREA = 1400;
+double DetectFishDeth::MAX_POZ = 640;
+
+double DetectFishDeth::SPEED_THRESH = 0.8;
+double DetectFishDeth::NEAREST_POINT_THRESH = 6;
+
+double DetectFishDeth::theta1 = 0.8;//relative position
+double DetectFishDeth::theta2 = 0.7;
+double DetectFishDeth::theta3 = 1.5;//speed
+
+double DetectFishDeth::alpha1 = 2;//
+double DetectFishDeth::alpha2 = 1;
+double DetectFishDeth::alpha3 = 2;
+*/
 MonitorSystem::MonitorSystem(QWidget *parent): QWidget(parent)
 {
 	init();
@@ -26,6 +44,8 @@ MonitorSystem::MonitorSystem(QWidget *parent): QWidget(parent)
 
 	_sms_sender_view = new SendSMS_view(0, _sms_sender);
 	_water_taking_siganl_sender_view = new SendWaterTakingSignal_view(0, _water_taking_siganl_sender);
+
+
 }
 
 MonitorSystem::~MonitorSystem()
@@ -84,7 +104,7 @@ void MonitorSystem::connect_signal_slot(){
 
 	connect(_t, &QTimer::timeout, this, &MonitorSystem::time_out_todo);
 
-	connect(_video_processing, &VideoProcessing::send_data_signal, this, &MonitorSystem::receive_data);
+	connect(_video_processing, &VideoProcessing::send_data_signal, this, &MonitorSystem::receive_data_single);
 
 
 	connect(_main_window->_sms_sender_Act, &QAction::triggered, this, &MonitorSystem::send_sms_set);
@@ -135,6 +155,10 @@ void MonitorSystem::process_start(){
 	this->_main_window->startAct->setEnabled(false);
 	this->_main_window->recodeAct->setEnabled(true);
 	this->_main_window->endAct->setEnabled(true);
+
+	this->_main_window->ui_data_view_1->add_Graphs(_imgp_set->get_num_fish());
+
+	_detect_fish_death_by_speed.set_num_fishs(_imgp_set->get_num_fish());
 };
 
 void MonitorSystem::record()
@@ -302,6 +326,7 @@ void MonitorSystem::auto_monitor_end(){  // 主要功能：close video_writer
 	_sys_db->InsertNewRecord_endtime(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"), _video_id);
 	_num_of_frames_recoded = 0;
 }
+
 // 自动新检测
 void MonitorSystem::auto_new_monitor(){// 主要功能：open a new video_writer
 
@@ -341,6 +366,7 @@ void MonitorSystem::auto_new_monitor(){// 主要功能：open a new video_writer
 		QMessageBox::information(nullptr, tr("警告"), tr("无法保存视频!"));
 	}
 }
+
 //------------------------------------------------------
 void MonitorSystem::time_out_todo(){
 
@@ -352,25 +378,65 @@ void MonitorSystem::time_out_todo(){
 
 	// [1] 处理视频中获取的图片
 	_video_processing->time_out_todo_1();
-	
 
 	// [2] 判断死亡
 	if ((_video_processing->_isPrecess) && (_num_of_frames % (NUM_FRAMES*2) == 0) ){
 
 		vector<float> is_deid = _detect_fish_death.input(_video_processing->get_gray_img(), _video_processing->get_fish_contours());
-		
-		for (size_t i = 0; i < is_deid.size(); ++i)
-		{
-			if (is_deid[i] > 0.8){
+		if (is_deid[0] > 0.8){
 
-				// 死鱼，发出信号
-				QString current_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
-				_main_window->ui_warning_view->add_warning_item(2, 0, tr(": %1 检测到死亡").arg(current_time));
-				fish_died_todo();
+			// 死鱼，发出信号
+			QString current_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
+			_main_window->ui_warning_view->add_warning_item(2, 0, tr(": %1 检测到死亡（通过图像分析）").arg(current_time));
 
-			}
-			_main_window->ui_data_view_8->updata_data(is_deid[i]);
+			fish_died_todo();
 		}
+
+		vector<float> p = _detect_fish_death.get_p();
+		for (size_t i = 0; i < p.size(); ++i)
+		{
+			if (p[i] > 0.8){
+				// 保存死鱼图片
+				/*
+				cv::Rect r = cv::boundingRect(cv::Mat(contours[i]));
+				cv::Mat fish_rect_gray = _video_processing->get_gray_img()(r);
+
+				char file[100];
+				sprintf(file, "fish_%d_%d.jpg", _num_of_frames, i);
+				cv::imwrite(file, fish_rect_gray);
+				*/
+			}
+			_main_window->ui_data_view_8->updata_data(p[i]);
+		}
+
+
+		// [+] 得到速度
+		if (!detect_fish_deth){
+			detect_fish_deth = new DetectFishDeth(_video_processing->get_fish_contours(), 600, 1000, _imgp_set->get_num_fish());
+		}
+		detect_fish_deth->get_prob_death(_video_processing->get_fish_contours());
+
+		vector<double> speed = detect_fish_deth->get_speed();
+
+		_detect_fish_death_by_speed.update(speed);
+
+		if (_num_of_frames>15*60 && _detect_fish_death_by_speed.isdied()){
+			QString current_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
+			_main_window->ui_warning_view->add_warning_item(2, 0, tr(": %1 检测到死亡 （通过速度检测，速度过小）。").arg(current_time));
+
+			fish_died_todo();
+		}
+
+		double mean_speed = 0;
+		size_t i = 0;
+		for (; i < speed.size(); i++)
+		{
+			mean_speed += speed[i];
+		}
+		speed.insert(speed.begin(), mean_speed / i);
+		receive_data(1, speed);
+
+		
 	}
 
 	// [2] 如果是在纪录状态（_isRecord） && 视频保存流打开,则 存储视频与数据
@@ -402,7 +468,7 @@ void MonitorSystem::save_video(const cv::Mat &image){
 	}
 }
 
-void MonitorSystem::receive_data(int index, double val){
+void MonitorSystem::receive_data_single(int index, double val){
 
 	static double speed = 0;
 	static int    wp_count = 0;
@@ -450,6 +516,46 @@ void MonitorSystem::receive_data(int index, double val){
 	}
 }
 
+void MonitorSystem::receive_data(int index, vector<double> val){
+
+	static vector<double>    speed = val;
+	static int    r = 0;
+
+	switch (index){
+	case 1: {// 速度
+		if (_num_of_frames % 15 == 0){
+			// 数据显示，保存
+			_main_window->updata_data(1, speed);
+			this->save_data(1, speed);
+			speed = val;
+		}
+		else{
+			for (size_t i = 0; i < val.size(); i++){
+				speed[i] += val[i];
+			}
+		}
+		break;}
+			/*
+	case 2: {
+		if (_num_of_frames % 15 == 0){
+			_main_window->updata_data(2, wp_count);
+			this->save_data(2, wp_count);
+			wp_count = val;
+		}
+		else{
+			for (int i = 0; i < val.size(); ++i){
+				if ((wp_old_data[i] == 1 && val[i] == 2) || (wp_old_data[i] == 2 && val[i] == 1)){
+					++wp_count[i];
+					wp_old_data = val;
+				}
+			}
+		}
+		break;
+	}*/
+
+	}
+}
+
 void MonitorSystem::save_data(int index, double val){
 	if (!_isRecord){
 		return;
@@ -476,118 +582,43 @@ void MonitorSystem::save_data(int index, double val){
 	}
 }
 
-/*
-void VideoProcessing::send_data(size_t modeIndex, double data){
-	static double speed = 0;
-	static int duration = 4;//异常持续时间
-	static int wp_count = 0;
-	static int old_data = 0;  //前一个数据
-
-	static int r = 0;
-	static int r_count = 0;
-	static int is_warning = 0;
-
-	static int speedcount = 0;
-	static int wpcount = 0;
-
-	QString current_date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-
-	switch (modeIndex)
-	{
+void MonitorSystem::save_data(int index, vector<double>& val){
+	if (!_isRecord){
+		return;
+	}
+	//else
+	switch (index){
 	case 1: // 速度
 	{
-	if (_num_of_frames % 15 == 0){
-	// 数据显示，保存
-	_main_window->updata_data(1, data);
+		for each (double var in val){
+			_data_writer_1 << (var) << " ";	// 数据写入对应文件中
 
-	if (_isRecord){
-	_data_writer_1 << (data) << " ";	// 数据写入对应文件中
-
-	// 预警检测
-	if (data > 2){
-	++speedcount;
-	if (speedcount > duration && is_warning == 0){
-	_main_window->ui_warning_view->add_warning_item(1, 1, "速度异常 " + current_date);
-	_sys_db->Insert_warning(1, 0, modeIndex);
-	is_warning = 1;
+		}
+		_data_writer_1 << endl;
+		break;
 	}
-	}
-	else {
-	speedcount = 0;
-	is_warning = 0;
-	}
-	}
-	}
-	break;
-	}
-
 	case 2: //
 	{
-	if (_num_of_frames % 15 == 0){
-	_main_window->updata_data(2, wp_count);
+		for each (double var in val){
+			_data_writer_2 << (var) << " ";	// 数据写入对应文件中
 
-	if (_isRecord){
-	_data_writer_2 << (wp_count) << std::endl;	// 数据写入对应文件中
-
-	if (data > 1.5){
-	++wpcount;
-	if (wpcount > duration && is_warning == 0){
-	_main_window->ui_warning_view->add_warning_item(1, 2, "尾频异常 " + current_date);
-	_sys_db->Insert_warning(2, 0, modeIndex);
-	is_warning = 1;
-	}
-	}
-	else{
-	wpcount = 0;
-	is_warning = 0;
-	}
-	}
-	wp_count = 0;
-	old_data = data;
-	}
-	else{
-	if ((old_data == 1 && data == 2) || (old_data == 2 && data == 1)){
-	++wp_count;
-	old_data = data;
-	}
-	}
-	break;
+		}
+		_data_writer_2 << endl;
+		break;
 	}
 	case 3: //群聚特征，
 	{
-	if (_num_of_frames % 15 == 0){
+		for each (double var in val){
+			_data_writer_3 << (var) << " ";	// 数据写入对应文件中
 
-	_main_window->updata_data(3, r / 15);
-	if (_isRecord){
-	_data_writer_3 << (r / 15) << std::endl;	// 数据写入对应文件中
-
-	if (data > 50){
-	++r_count;
-	if (r_count > duration && is_warning == 0){
-	_main_window->ui_warning_view->add_warning_item(1, 3, "半径异常 " + current_date);
-	_sys_db->Insert_warning(3, 0, modeIndex);
-	is_warning = 1;
-	}
-	}
-	else{
-	r_count = 0;
-	is_warning = 0;
-	}
-	}
-	r = 0;
-	}
-	else {
-	r += data;
-	}
-	break;
+		}
+		_data_writer_3 << endl;
+		break;
 	}
 	default:
-	break;
+		break;
 	}
-	
 }
-*/
-
 
 void MonitorSystem::fish_died_todo(){
 
@@ -620,10 +651,11 @@ void MonitorSystem::fish_died_todo(){
 	}
 }
 
-
 void MonitorSystem::send_sms_set(){
 	_sms_sender_view->show();
 }
+
 void MonitorSystem::water_taking_set(){
 	_water_taking_siganl_sender_view->show();
 }
+

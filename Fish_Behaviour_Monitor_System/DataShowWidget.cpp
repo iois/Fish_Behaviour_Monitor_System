@@ -16,7 +16,8 @@ void DataShowWidget::setupUi(){
 	ui_qcustomplot = new QCustomPlot(this);
 
 	ui_qcustomplot->addGraph(); // blue line
-	ui_qcustomplot->graph(0)->setPen(QPen(Qt::blue));
+	ui_qcustomplot->graph(0)->setPen(QPen(Qt::red));
+	ui_qcustomplot->graph(0)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssCircle, 5));
 
 	ui_qcustomplot->xAxis->setTickLabelType(QCPAxis::ltDateTime);
 	ui_qcustomplot->xAxis->setDateTimeFormat("hh:mm:ss");
@@ -46,9 +47,9 @@ void DataShowWidget::setupUi(){
 
 	this->setLayout(ui_layout_main);
 
-	ui_show_title.setText(tr("<b>速度:<\b>"));
+	ui_show_title.setText(tr("<b>最小速度:<\b>"));
 	ui_show_data.setText(tr("0.0"));
-	ui_show_unit.setText(tr("cm/s"));
+	ui_show_unit.setText(tr(""));
 	ui_show_title.setMaximumHeight(20);
 	ui_show_data.setMaximumHeight(20);
 	ui_show_unit.setMaximumHeight(20);
@@ -60,7 +61,14 @@ void DataShowWidget::setupUi(){
 	this->setPalette(palette);
 }
 
-
+void DataShowWidget::add_Graphs(int num_graphs){
+	for (size_t i = 0; i < num_graphs; i++)
+	{
+		ui_qcustomplot->addGraph(); // blue line
+		int r = std::rand() / RAND_MAX * 255, g = std::rand() / RAND_MAX * 255, b = std::rand() / RAND_MAX * 255;
+		ui_qcustomplot->graph(1+i)->setPen(QPen(QColor(r,g,b)));
+	}
+}
 
 void DataShowWidget::set_title(QString t){
 
@@ -92,4 +100,34 @@ void DataShowWidget::updata_data(double data){
 	ui_qcustomplot->replot();
 
 	ui_show_data.setText(tr("%1").arg(data));
+}
+
+void DataShowWidget::updata_data(std::vector<double> data){
+	double key = QDateTime::currentDateTime().toMSecsSinceEpoch() / 1000.0;
+	static double lastPointKey = 0;
+	{
+		for (size_t i = 0; i < data.size(); i++)
+		{
+			ui_qcustomplot->graph(i)->addData(key, data[i]);
+
+			// remove data of lines that's outside visible range:
+			ui_qcustomplot->graph(i)->removeDataBefore(key - 500);
+
+			// rescale value (vertical) axis to fit the current data:
+			ui_qcustomplot->graph(i)->rescaleValueAxis(true);
+		}
+
+
+		lastPointKey = key;
+	}
+	//qcustomplot_speed->xAxis->setRange(key + 0.25, 8, Qt::AlignRight);
+	ui_qcustomplot->xAxis->setRange(key + 0.5, 500, Qt::AlignRight);//??
+	ui_qcustomplot->replot();
+
+	int min_speed = INT_MAX;
+	for (size_t i = 0; i < data.size(); i++)
+	{
+		if (data[i] < min_speed){ min_speed = data[i]; }
+	}
+	ui_show_data.setText(tr("%1  条数：%2").arg(min_speed).arg(data.size()-1));
 }

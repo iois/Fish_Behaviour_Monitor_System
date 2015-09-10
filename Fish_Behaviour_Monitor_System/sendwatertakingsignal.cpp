@@ -19,7 +19,7 @@ SendWaterTakingSignal::SendWaterTakingSignal() :_waitTimeout(1000)
     }
 
     if (!_serial_ports.empty()){
-        this->_portName = _serial_ports[1];
+        this->_portName = _serial_ports[0];
     }
     else{
         qDebug() << "no chuankou";

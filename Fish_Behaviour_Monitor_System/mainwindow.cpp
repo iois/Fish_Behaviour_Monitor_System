@@ -86,9 +86,9 @@ void MainWindow::setupUi()
 	data_show_3->setLayout(vLayout_other);
 
 	tabWidget = new QTabWidget(this);
-	tabWidget->addTab(data_show_1, tr("单尾鱼数据"));
-	tabWidget->addTab(data_show_2, tr("群体鱼数据"));
-	tabWidget->addTab(data_show_3, tr("其他数据"));
+	tabWidget->addTab(data_show_1, tr("速度与尾频"));
+	tabWidget->addTab(data_show_2, tr("群聚半径"));
+	tabWidget->addTab(data_show_3, tr("死亡检测"));
 
 	QVBoxLayout *vLayout_22 = new QVBoxLayout(this);
 	vLayout_22->setSpacing(6);
@@ -254,6 +254,23 @@ void MainWindow::updata_data(size_t modeIndex, double data){
 		break;
 	}
 }
+
+void MainWindow::updata_data(size_t modeIndex, vector<double> data){
+	switch (modeIndex)
+	{
+	case 1:
+		this->ui_data_view_1->updata_data(data);
+		break;
+	case 2:
+		this->ui_data_view_2->updata_data(data);
+		break;
+	case 3:
+		this->ui_data_view_3->updata_data(data);
+		break;
+	default:
+		break;
+	}
+}
 ///
 
 void MainWindow::about()
@@ -266,24 +283,20 @@ void MainWindow::about()
 }
 
 void MainWindow::system_set(){
-	if (dock_set)
-	{
+	if (dock_set){
 		dock_set->show();
 	}
-	if (dock_img_process_set)
-	{
+	if (dock_img_process_set){
 		dock_img_process_set->show();
 	}
 };
 
 void MainWindow::set_view_default()
 {
-	if (dock_set)
-	{
+	if (dock_set){
 		dock_set->show();
 	}
-	if (dock_img_process_set)
-	{
+	if (dock_img_process_set){
 		dock_img_process_set->show();
 	}
 }

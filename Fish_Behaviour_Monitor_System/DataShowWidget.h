@@ -18,9 +18,13 @@ public:
 	~DataShowWidget();
 
 public:
+
+	void add_Graphs(int num_graphs);//Ìí¼Ónum_graphsÌõÇúÏß
 	void set_title(QString t);
 	void set_unit(QString u);
 	void updata_data(double data);
+	void updata_data(std::vector<double> data);
+
 private:
 	void setupUi();
 
@@ -30,7 +34,9 @@ private:
 	float current_data;
 
 	QLabel ui_show_title;
-	QLabel ui_show_data;
+	
 	QLabel ui_show_unit;
+public:
+	QLabel ui_show_data;
 };
 

@@ -256,15 +256,16 @@ void VideoProcessing::time_out_todo_1()
 	{
 		ImgProcessing(_frame, _img_temp);  // 处理图像
 
+		// 计算轮廓
 		_contours.clear();
 		_contours = this->compute_Contour(_img_temp);
 
 		if (_img_process_set->get_num_fish() == 1){
 
-			double speed = _mode_processing->execute(_img_temp, _img_for_show, _contours);
+			//double speed = _mode_processing->execute(_img_temp, _img_for_show, _contours);
 			double wp = _mode_processing_wp->execute(_img_temp, _img_for_show, _contours);
 
-			emit send_data_signal(1, speed);
+			//emit send_data_signal(1, speed);
 			emit send_data_signal(2, wp);
 
 		}else if (_img_process_set->get_num_fish() > 1){
@@ -357,9 +358,6 @@ cv::Mat VideoProcessing::background_pickup(){
 	return background;
 }
 
-
-
-
 // 计算 轮廓， 输入为灰度图像，实际只有 黑白 两种颜色
 vector<vector<cv::Point>> VideoProcessing::compute_Contour(cv::Mat &src){
 
@@ -370,17 +368,14 @@ vector<vector<cv::Point>> VideoProcessing::compute_Contour(cv::Mat &src){
 	cv::findContours(src, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 
 	int num_cont = contours.size();      // 轮廓数
-	CvPoint   fish_centerpoint;
 
-	// 计算得到每一条鱼的中心， 保持在 _fishCenter 中
+	// 根据轮廓大小判断是否是鱼  ->（不准确）  todo: 想别的办法
 	for (int i = 0; i < num_cont; ++i)
 	{
 		double s = contourArea(contours[i]);// 计算整个轮廓的面积
-		if (fabs(s) < _img_process_set->get_min_area() && fabs(s) > _img_process_set->get_max_area())
-		{
+		if (fabs(s) < _img_process_set->get_min_area() && fabs(s) > _img_process_set->get_max_area()){
 			continue;
-		}
-		else{
+		}else{
 			contours_temp.push_back(contours[i]);
 		}
 	}

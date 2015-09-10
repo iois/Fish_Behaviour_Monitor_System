@@ -48,6 +48,8 @@ double Speedmode_processing::execute(cv::Mat &src, cv::Mat &img_draw, const vect
 		// 计算重心坐标  这里的重心指的是一条鱼的重心（轮廓的重心）
 		fish_centerpoint.x = m.m10 / m.m00;
 		fish_centerpoint.y = m.m01 / m.m00;
+
+		drawContours(img_draw, contours, i, CV_RGB(0, 255, 0), 1, 8);
 	}
 	return this->compute_speed(fish_centerpoint);
 }

@@ -208,14 +208,8 @@ float DetectFishDeath::detect(cv::Mat& input_image){
 }
 
 std::vector<float> DetectFishDeath::input(const cv::Mat& input_image, const std::vector<std::vector<cv::Point> > &contours){
-	std::vector<float> p;
-
-	/*
-	if (input_image.channels() > 1){
-		qDebug() << "input_image.channels() £º " << input_image.channels()<<endl;
-		return p;
-	}
-	*/
+	
+	p.clear();
 
 	for (size_t i = 0; i < contours.size(); ++i)
 	{
@@ -232,5 +226,39 @@ std::vector<float> DetectFishDeath::input(const cv::Mat& input_image, const std:
 
 	}
 	++j;
-	return p;
+	
+	int is_deid_in_current_frame = 0;
+	if (_num_detected_death.empty()){ _num_detected_death = vector<int>(NUM_FRAMES * 60 * 5, 0); }
+	else{
+		for (size_t i = 0; i < p.size(); ++i)
+		{
+			if (p[i] > 0.8){
+				++is_deid_in_current_frame;
+			}
+		}
+
+		if (is_deid_in_current_frame > 0){
+			_num_detected_death.push_back(1);
+			_num_detected_death.pop_back();
+		}
+		else{
+			_num_detected_death.push_back(0);
+			_num_detected_death.pop_back();
+		}
+		is_deid_in_current_frame = 0;
+	}
+	
+	int sum = 0;
+	for each (int var in _num_detected_death)
+	{
+		sum += var;
+	}
+	std::vector<float> out;
+	if (sum > NUM_FRAMES * 60 * 5 * 0.7){
+		out.push_back(1);
+	}
+	else{
+		out.push_back(0);
+	}
+	return out;
 }
