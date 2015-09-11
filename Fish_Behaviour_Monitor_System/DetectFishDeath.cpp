@@ -207,7 +207,7 @@ float DetectFishDeath::detect(cv::Mat& input_image){
 	return outputMat.at<float>(0, 0);
 }
 
-std::vector<float> DetectFishDeath::input(const cv::Mat& input_image, const std::vector<std::vector<cv::Point> > &contours){
+std::vector<float> DetectFishDeath::input(const cv::Mat& input_image, const std::vector<std::vector<cv::Point> > &contours,int seconds){
 	
 	p.clear();
 
@@ -228,7 +228,7 @@ std::vector<float> DetectFishDeath::input(const cv::Mat& input_image, const std:
 	++j;
 	
 	int is_deid_in_current_frame = 0;
-	if (_num_detected_death.empty()){ _num_detected_death = vector<int>(NUM_FRAMES * 60 * 5, 0); }
+	if (_num_detected_death.empty()){ _num_detected_death = vector<int>(NUM_FRAMES *seconds, 0); }
 	else{
 		for (size_t i = 0; i < p.size(); ++i)
 		{

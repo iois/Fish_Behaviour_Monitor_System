@@ -240,12 +240,13 @@ bool VideoProcessing::open_file(const std::string &file_name){
 
 void VideoProcessing::time_out_todo_1()
 {
-
+	/*
 	if (!_background.empty()){
 
 		cv::imshow("Display Image", _background);
 	}
-	
+	*/
+
 	//从CvCapture中获得一帧
 	_cap >> _frame;
 
@@ -271,7 +272,7 @@ void VideoProcessing::time_out_todo_1()
 		}else if (_img_process_set->get_num_fish() > 1){
 			double r = _mode_processing_Cluster->execute(_img_temp, _img_for_show, _contours);
 
-			emit send_data_signal(3, r);
+			emit send_data_signal(3, r*0.07);
 		}
 	}
 

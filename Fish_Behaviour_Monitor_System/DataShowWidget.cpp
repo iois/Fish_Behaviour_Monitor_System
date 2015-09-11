@@ -124,7 +124,7 @@ void DataShowWidget::updata_data(std::vector<double> data){
 	ui_qcustomplot->xAxis->setRange(key + 0.5, 500, Qt::AlignRight);//??
 	ui_qcustomplot->replot();
 
-	int min_speed = INT_MAX;
+	double min_speed = 10000000;
 	for (size_t i = 0; i < data.size(); i++)
 	{
 		if (data[i] < min_speed){ min_speed = data[i]; }

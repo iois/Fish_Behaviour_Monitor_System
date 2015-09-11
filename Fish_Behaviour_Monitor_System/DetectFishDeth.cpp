@@ -158,12 +158,16 @@ vector<double> DetectFishDeth::get_speed()
 			s += sqrt(x_sum + y_sum);
 		}
 		//cout << "s: " << s << endl;
+		//这里的 1 ， s、MAX_SPEED 为概率
+		/*
 		if (s > MAX_SPEED){
 			speed.push_back(1);
 		}
 		else{
-			speed.push_back(s/ MAX_SPEED);
+			speed.push_back(s/MAX_SPEED);
 		}
+		*/
+		speed.push_back(s);
 	}
 	return speed;
 }

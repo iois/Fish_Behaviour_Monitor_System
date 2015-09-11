@@ -275,6 +275,7 @@ double WPmode_processing::execute(cv::Mat &src, cv::Mat &img_draw, const vector<
 	for (int i = 0; i < contours.size(); ++i)
 	{
 		fish = Fish(contours[i]);
+		drawContours(img_draw, contours, i, CV_RGB(0, 255, 0), 1, 8);
 	}
 	return this->compute_WP(fish);
 }
@@ -383,9 +384,9 @@ void Clustermode_processing::compute_Contour(Mat &src, Mat &img_draw, int minCon
 	}
 }
 
-int Clustermode_processing::compute_R(std::vector<CvPoint>& fishCenter, IplImage *img_draw)
+double Clustermode_processing::compute_R(std::vector<CvPoint>& fishCenter, IplImage *img_draw)
 {
-	int _r = 0;
+	double _r = 0;
 	int num_cont = fishCenter.size();
 	CvPoint _all_triangles_center = _Delaunay(fishCenter, img_draw);
 
@@ -415,9 +416,9 @@ int Clustermode_processing::compute_R(std::vector<CvPoint>& fishCenter, IplImage
 	return _r;
 }
 
-int Clustermode_processing::compute_R(std::vector<CvPoint>& fishCenter, cv::Mat &img_draw){
+double Clustermode_processing::compute_R(std::vector<CvPoint>& fishCenter, cv::Mat &img_draw){
 
-	int _r = 0;
+	double _r = 0;
 	int num_cont = fishCenter.size();
 	
 	CvPoint _all_triangles_center = _Delaunay(fishCenter, img_draw);

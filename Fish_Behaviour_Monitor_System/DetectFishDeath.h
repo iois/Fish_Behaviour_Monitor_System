@@ -21,7 +21,7 @@ public:
 	~DetectFishDeath();
 
 	//  ‰»Î ª“∂»ÕºœÒ£¨¬÷¿™
-	std::vector<float> input(const cv::Mat& input_image, const std::vector<std::vector<cv::Point> > &contours);
+	std::vector<float> input(const cv::Mat& input_image, const std::vector<std::vector<cv::Point> > &contours,int seconds);
 	std::vector<float> get_p(){ return p; }
 private:
 	CvANN_MLP bp;
@@ -39,8 +39,9 @@ public:
 	DetectFishDeath_by_speed(){}
 	~DetectFishDeath_by_speed(){}
 
-	void set_num_fishs(int n){ 
-		_speeds = vector<vector<double>>(n, vector<double>(NUM_FRAMES * 60 * 1, 0));
+	void set_num_fishs(int n, int seconds, double speed_threshold){
+		this->speed_threshold = speed_threshold;
+		_speeds = vector<vector<double>>(n, vector<double>(NUM_FRAMES * seconds/0.7, 0));
 	}
 
 	void update(const std::vector<double> &speeds){
@@ -63,7 +64,7 @@ public:
 				}
 			}
 		}
-		if (num_speed_less_than > NUM_FRAMES * 60 * 1 * 0.7)
+		if (num_speed_less_than > NUM_FRAMES * _speeds.size())
 			return 1;
 		else
 			return 0;
@@ -71,5 +72,5 @@ public:
 
 private:
 	vector<vector<double>> _speeds;
-	double speed_threshold = 3;//piexl
+	double speed_threshold = 3;//cm
 };

@@ -158,7 +158,7 @@ void MonitorSystem::process_start(){
 
 	this->_main_window->ui_data_view_1->add_Graphs(_imgp_set->get_num_fish());
 
-	_detect_fish_death_by_speed.set_num_fishs(_imgp_set->get_num_fish());
+	_detect_fish_death_by_speed.set_num_fishs(_imgp_set->get_num_fish(), _sys_set->_dritionTime, _sys_set->_speedthreshold);
 };
 
 void MonitorSystem::record()
@@ -192,7 +192,7 @@ void MonitorSystem::record()
 			}
 		}
 
-		QString current_date = QDateTime::currentDateTime().toString("yyyyMMddhhmm");
+		QString current_date = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
 
 		this->_video_id = current_date;
 		// 保存数据的文件名
@@ -330,7 +330,7 @@ void MonitorSystem::auto_monitor_end(){  // 主要功能：close video_writer
 // 自动新检测
 void MonitorSystem::auto_new_monitor(){// 主要功能：open a new video_writer
 
-	QString current_date = QDateTime::currentDateTime().toString("yyyyMMddhhmm");
+	QString current_date = QDateTime::currentDateTime().toString("yyyyMMddhhmmss");
 
 	this->_video_id = current_date;
 	// 保存数据的文件名
@@ -382,8 +382,10 @@ void MonitorSystem::time_out_todo(){
 	// [2] 判断死亡
 	if ((_video_processing->_isPrecess) && (_num_of_frames % (NUM_FRAMES*2) == 0) ){
 
-		vector<float> is_deid = _detect_fish_death.input(_video_processing->get_gray_img(), _video_processing->get_fish_contours());
-		if (is_deid[0] > 0.8){
+		vector<float> is_deid = _detect_fish_death.input(_video_processing->get_gray_img(), _video_processing->get_fish_contours(), _sys_set->_dritionTime);
+		
+		//每小时报警一次
+		if (is_deid[0] > 0.8 && (_num_of_frames % (NUM_FRAMES * 10) == 0)){
 
 			// 死鱼，发出信号
 			QString current_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
@@ -395,48 +397,58 @@ void MonitorSystem::time_out_todo(){
 		vector<float> p = _detect_fish_death.get_p();
 		for (size_t i = 0; i < p.size(); ++i)
 		{
+			/*
 			if (p[i] > 0.8){
 				// 保存死鱼图片
-				/*
+				
 				cv::Rect r = cv::boundingRect(cv::Mat(contours[i]));
 				cv::Mat fish_rect_gray = _video_processing->get_gray_img()(r);
 
 				char file[100];
 				sprintf(file, "fish_%d_%d.jpg", _num_of_frames, i);
 				cv::imwrite(file, fish_rect_gray);
-				*/
+				
 			}
+			*/
 			_main_window->ui_data_view_8->updata_data(p[i]);
 		}
 
-
 		// [+] 得到速度
 		if (!detect_fish_deth){
-			detect_fish_deth = new DetectFishDeth(_video_processing->get_fish_contours(), 600, 1000, _imgp_set->get_num_fish());
+			if (_video_processing->get_fish_contours().size() != _imgp_set->get_num_fish()){
+			}else{ 
+				detect_fish_deth = new DetectFishDeth(_video_processing->get_fish_contours(), 600, 1000, _imgp_set->get_num_fish()); 
+			}
+		} else{
+
+			detect_fish_deth->get_prob_death(_video_processing->get_fish_contours());
+
+			vector<double> speed = detect_fish_deth->get_speed();
+
+			for (size_t i = 0; i < speed.size(); ++i)
+			{
+				speed[i] = speed[i] * 0.007;//单位转化
+			}
+
+			_detect_fish_death_by_speed.update(speed);
+
+			//每小时报警一次
+			if (_detect_fish_death_by_speed.isdied() && (_num_of_frames % (NUM_FRAMES * 60 ) == 0) ){
+				QString current_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
+				_main_window->ui_warning_view->add_warning_item(2, 0, tr(": %1 检测到死亡 （通过速度检测，速度过小）。").arg(current_time));
+
+				fish_died_todo();
+			}
+
+			double mean_speed = 0;
+			double i = 0;
+			for (; i < speed.size(); ++i)
+			{
+				mean_speed += speed[i];
+			}
+			speed.insert(speed.begin(), mean_speed / i);
+			receive_data(1, speed);
 		}
-		detect_fish_deth->get_prob_death(_video_processing->get_fish_contours());
-
-		vector<double> speed = detect_fish_deth->get_speed();
-
-		_detect_fish_death_by_speed.update(speed);
-
-		if (_num_of_frames>15*60 && _detect_fish_death_by_speed.isdied()){
-			QString current_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
-			_main_window->ui_warning_view->add_warning_item(2, 0, tr(": %1 检测到死亡 （通过速度检测，速度过小）。").arg(current_time));
-
-			fish_died_todo();
-		}
-
-		double mean_speed = 0;
-		size_t i = 0;
-		for (; i < speed.size(); i++)
-		{
-			mean_speed += speed[i];
-		}
-		speed.insert(speed.begin(), mean_speed / i);
-		receive_data(1, speed);
-
-		
 	}
 
 	// [2] 如果是在纪录状态（_isRecord） && 视频保存流打开,则 存储视频与数据
@@ -473,7 +485,7 @@ void MonitorSystem::receive_data_single(int index, double val){
 	static double speed = 0;
 	static int    wp_count = 0;
 	static int    wp_old_dtat = 1;
-	static int    r = 0;
+	static double    r = 0;
 
 	switch (index){
 	case 1: {// 速度
@@ -523,7 +535,7 @@ void MonitorSystem::receive_data(int index, vector<double> val){
 
 	switch (index){
 	case 1: {// 速度
-		if (_num_of_frames % 15 == 0){
+		if (_num_of_frames % NUM_FRAMES == 0){
 			// 数据显示，保存
 			_main_window->updata_data(1, speed);
 			this->save_data(1, speed);

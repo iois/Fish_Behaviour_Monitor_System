@@ -90,8 +90,8 @@ private:
 	void compute_Contour(IplImage *src, IplImage *img_draw, int minContour, std::vector<CvPoint>& fishCenter);
 	void compute_Contour(cv::Mat &src, cv::Mat &img_draw, int minContour, std::vector<CvPoint>& fishCenter);
 
-	int compute_R(std::vector<CvPoint>& fishCenter, IplImage *img_draw);
-	int compute_R(std::vector<CvPoint>& fishCenter, cv::Mat &img_draw);
+	double compute_R(std::vector<CvPoint>& fishCenter, IplImage *img_draw);
+	double compute_R(std::vector<CvPoint>& fishCenter, cv::Mat &img_draw);
 
 	//int compute_numFishOutCircle(std::vector<CvPoint>& fishCenter, IplImage *img_draw);
 	CvPoint _Delaunay(std::vector<CvPoint> points, IplImage *dst);
