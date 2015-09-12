@@ -42,6 +42,10 @@ void ImgShowWidget::set_size(const QSize& size)
 	this->_img_label->setFixedSize(_size);
 }
 
+void ImgShowWidget::clean_show_img(){
+
+	_img_label->setPixmap(QPixmap("images/pic.jpg"));
+};
 //----------------------------------------------------------------
 
 

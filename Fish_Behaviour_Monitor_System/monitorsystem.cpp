@@ -2,23 +2,8 @@
 #include<QtCore\qdebug.h>
 
 
-/*
-int    DetectFishDeth::SIZE_FRAME = 15;
-double DetectFishDeth::MAX_SPEED = 60;
-double DetectFishDeth::MAX_AREA = 1400;
-double DetectFishDeth::MAX_POZ = 640;
+double RATE = 1;
 
-double DetectFishDeth::SPEED_THRESH = 0.8;
-double DetectFishDeth::NEAREST_POINT_THRESH = 6;
-
-double DetectFishDeth::theta1 = 0.8;//relative position
-double DetectFishDeth::theta2 = 0.7;
-double DetectFishDeth::theta3 = 1.5;//speed
-
-double DetectFishDeth::alpha1 = 2;//
-double DetectFishDeth::alpha2 = 1;
-double DetectFishDeth::alpha3 = 2;
-*/
 MonitorSystem::MonitorSystem(QWidget *parent): QWidget(parent)
 {
 	init();
@@ -44,8 +29,6 @@ MonitorSystem::MonitorSystem(QWidget *parent): QWidget(parent)
 
 	_sms_sender_view = new SendSMS_view(0, _sms_sender);
 	_water_taking_siganl_sender_view = new SendWaterTakingSignal_view(0, _water_taking_siganl_sender);
-
-
 }
 
 MonitorSystem::~MonitorSystem()
@@ -159,6 +142,9 @@ void MonitorSystem::process_start(){
 	this->_main_window->ui_data_view_1->add_Graphs(_imgp_set->get_num_fish());
 
 	_detect_fish_death_by_speed.set_num_fishs(_imgp_set->get_num_fish(), _sys_set->get_dritionTime(), _sys_set->get_speedthreshold());
+
+	RATE = (double)_sys_set->get_real_width() / (double)_video_processing->get_img_size().width;
+
 };
 
 void MonitorSystem::record()
@@ -242,15 +228,20 @@ void MonitorSystem::process_end(){
 	if (_video_processing && _video_processing->_isPrecess){
 		_video_processing->process_end();
 
-		if (_video_Writer.isOpened()){
-			_video_Writer.release();
-		}
+		if (_video_Writer.isOpened()){_video_Writer.release();}
 		if (_data_writer_1.is_open()) _data_writer_1.close();
 		if (_data_writer_2.is_open()) _data_writer_2.close();
 		if (_data_writer_3.is_open()) _data_writer_3.close();
 		//todo
 		_sys_db->InsertNewRecord_endtime(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"), _video_id);
 	}
+	
+	_t->stop();
+	
+	_main_window->clean_window();
+
+	_num_of_frames = 0;// 当前帧数 设为0
+
 	this->_main_window->startAct->setEnabled(true);
 	this->_main_window->endAct->setEnabled(false);
 	this->_main_window->recodeAct->setIcon(QIcon("images/record.ico"));
@@ -266,7 +257,6 @@ void MonitorSystem::process_end(){
 	// todo:
 	// 显示数据 那块 清空
 
-	_num_of_frames = 0;// 当前帧数 设为0
 }
 
 void MonitorSystem::exit(){
@@ -427,7 +417,7 @@ void MonitorSystem::time_out_todo(){
 
 			for (size_t i = 0; i < speed.size(); ++i)
 			{
-				speed[i] = speed[i] * 0.007;//单位转化
+				speed[i] = speed[i] * RATE;//单位转化
 			}
 
 			_detect_fish_death_by_speed.update(speed);
@@ -518,7 +508,7 @@ void MonitorSystem::receive_data_single(int index, double val){
 	}
 	case 3:{
 			   if (_num_of_frames % 15 == 0){
-				   _main_window->updata_data(3, r/15);
+				   _main_window->updata_data(3, (r/15)*RATE);
 				   this->save_data(3, r / 15);
 				   r = 0;
 			   }

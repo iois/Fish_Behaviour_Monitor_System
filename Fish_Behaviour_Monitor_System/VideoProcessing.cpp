@@ -272,7 +272,7 @@ void VideoProcessing::time_out_todo_1()
 		}else if (_img_process_set->get_num_fish() > 1){
 			double r = _mode_processing_Cluster->execute(_img_temp, _img_for_show, _contours);
 
-			emit send_data_signal(3, r*0.07);
+			emit send_data_signal(3, r);
 		}
 	}
 

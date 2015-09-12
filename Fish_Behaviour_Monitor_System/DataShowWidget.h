@@ -25,6 +25,7 @@ public:
 	void updata_data(double data);
 	void updata_data(std::vector<double> data);
 
+	void setRange(int x1, int x2){ ui_qcustomplot->yAxis->setRange(x1,x2); };
 private:
 	void setupUi();
 

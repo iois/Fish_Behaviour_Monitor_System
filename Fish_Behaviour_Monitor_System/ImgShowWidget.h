@@ -24,6 +24,7 @@ public:
 	void show_img(const QImage *src);//显示图片
 	void set_size(const QSize& size); //改变大小
 
+	void clean_show_img();
 protected:
 	QLabel* _img_label;
 	QSize   _size;

@@ -115,6 +115,10 @@ public:	//¸ø video_processing µ÷ÓÃ
 	void updata_data(size_t modeIndex, double data); // 
 	void updata_data(size_t modeIndex, vector<double> data); // 
 
+public:
+	void clean_window(){ 
+		ui_img_view->clean_show_img(); 
+	}
 public slots:
 	void system_set();
 	void set_view_default();

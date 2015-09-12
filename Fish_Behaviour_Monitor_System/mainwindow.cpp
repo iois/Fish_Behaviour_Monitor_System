@@ -72,6 +72,7 @@ void MainWindow::setupUi()
 
 	ui_data_view_8->set_title("ËÀÍö:");
 	ui_data_view_8->set_unit("");
+	ui_data_view_8->setRange(-1,2);
 	vLayout_other->addWidget(ui_data_view_8);
 	ui_data_view_9->set_title("°ëËÀÍö:");
 	ui_data_view_9->set_unit("");
