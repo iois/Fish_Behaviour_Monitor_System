@@ -16,7 +16,6 @@
 
 #include<QLineEdit>
 #include<QPushButton>
-//#include<QSpinBox>// class QSpinBox???
 
 #include<QFileDialog>
 #include<QCheckBox>
@@ -26,10 +25,10 @@ class QSpinBox;
 class UnitInfoPage;
 class VideoSetPage;
 class MonitorSetPage;
+class Button_in_LineEdit;
 
 // 返回硬盘容量
 int get_remain_storage(QString path);
-
 
 class SystemSet : public QObject
 {
@@ -37,54 +36,60 @@ class SystemSet : public QObject
 public:
 	explicit SystemSet(QObject *parent = 0);
 	~SystemSet();
-public:
+
 	// 视频设置
-	QString   _file_save_path;       //视频文件储存路径
-	void      set_file_save_path(QString path){ _file_save_path = path; };
-	QString   get_file_save_path(){ return _file_save_path; };
-	int     _video_length_of_time; //视频文件长度 min
-	int get_video_length_of_time(){ return _video_length_of_time; }
-	void set_video_length_of_time(int length){ _video_length_of_time = length; }
-	int     _cameraHeight;
-	int     _realLength;
-	int get_realLength(){ return _realLength; }
-	void set_realLength(int l){ _realLength = l; }
+	void     set_file_save_path(QString path){ _file_save_path = path; write_all_data(); };
+	QString  get_file_save_path(){ return _file_save_path; };
+	int      get_video_length(){ return _video_length; }
+	void     set_video_length(int length){ _video_length = length; write_all_data(); }
+	int      get_real_width(){ return _real_width; }
+	void     set_real_width(int l){ _real_width = l; write_all_data(); }
 
 	// 节点设置
-	QString _unit_id;
-	QString get_unit_id(){ return _unit_id; };
-	void    set_unit_id(QString id){
-		_unit_id = id;
-		/*
-		QSettings settings("config.ini", QSettings::IniFormat); // 当前目录的INI文件
-		settings.beginGroup("UnitInfo");
-		settings.setValue("unitID", _unit_id);
-		settings.endGroup();
-		*/
-	};
-	QString _unit_name;
-	QString _unit_position;
+	QString   get_unit_id(){ return _unit_id; };
+	void      set_unit_id(QString id){ _unit_id = id; write_all_data(); };
+	QString   get_unit_name(){ return _unit_name; };
+	void      set_unit_name(QString id){ _unit_name = id; write_all_data(); };
+	QString   get_unit_position(){ return _unit_position; };
+	void      set_unit_position(QString id){ _unit_position = id; write_all_data(); };
 
 	// 监测设置
-	int _dritionTime;    //异常持续时间min
-	int _speedthreshold;
-	int _WPthreshold;
+	int get_dritionTime(){ return _dritionTime; };
+	void set_dritionTime(int x){ _dritionTime = x; write_all_data(); };
+	int get_speedthreshold(){ return _speedthreshold; };
+	void set_speedthreshold(int x){ _speedthreshold = x; write_all_data(); };
+	int get_WPthreshold(){ return _WPthreshold; };
+	void set_WPthreshold(int x){ _WPthreshold = x; write_all_data(); };
 
-public:
-	int _isrecordVideo;
-	int	_isrecordData;
+private:
+
+	// 视频设置
+	QString   _file_save_path;       //视频文件储存路径
+	int       _video_length;         //视频文件长度 h
+	int       _real_width;           //实际宽度cm
+
+	// 节点设置
+	QString   _unit_id;
+	QString   _unit_name;
+	QString   _unit_position;
+
+	// 监测设置
+	int       _dritionTime;    //异常持续时间min
+	int       _speedthreshold;
+	int       _WPthreshold;
 
 	void write_all_data(){
 		QSettings settings("Resources/config.ini", QSettings::IniFormat); // 当前目录的INI文件
 		settings.beginGroup("UnitInfo");
 		settings.setValue("unitID", _unit_id);
+		settings.setValue("unitName", _unit_name);
+		settings.setValue("unitPosition", _unit_position);
 		settings.endGroup();
 
-		settings.beginGroup("SystemSet");
+		settings.beginGroup("VideoSet");
 		settings.setValue("videoSavePath", _file_save_path);
-		settings.setValue("videoLength", _video_length_of_time);
-		settings.setValue("cameraHeight", _cameraHeight);
-		settings.setValue("realLength", _realLength);
+		settings.setValue("videoLength", _video_length);
+		settings.setValue("RealWidth", _real_width);
 		settings.endGroup();
 
 		settings.beginGroup("MonitorSet");
@@ -94,91 +99,6 @@ public:
 		settings.endGroup();
 	}
 };
-
-
-
-// define SystemSet view
-// 系统设置 （视图）单例模式
-// 由static SystemSetView *instance(SystemSet *s)得到函数的唯一实例
-class SystemSetView :public QWidget
-{
-	Q_OBJECT
-public:
-	static SystemSetView *_instance;//唯一实例 指针
-	static SystemSetView *instance(QWidget *parent = 0,SystemSet *s = 0)
-	{
-		if (!_instance)
-			_instance = new SystemSetView(0, s);
-		return _instance;
-	}
-
-private:
-	SystemSetView(QWidget *parent = 0, SystemSet *s = 0);
-	~SystemSetView(){};
-
-	public slots :
-	void changePage(QListWidgetItem*, QListWidgetItem*);
-	void button_ok();
-
-private:
-	void createIcons();
-	void Init_Gui();
-	void setup_data();
-
-	QPushButton* closeButton;
-	QPushButton* sure_Button;
-
-	SystemSet* _sys_set;
-
-	QListWidget* contentsWidget;
-	QStackedWidget* pagesWidget;
-
-	UnitInfoPage* info_page;
-	VideoSetPage* vidset_page;
-	MonitorSetPage* monitor_page;
-};
-
-
-class UnitInfoPage : public QWidget
-{
-public:
-	UnitInfoPage(QWidget *parent = 0);
-	~UnitInfoPage();
-	QLineEdit *ui_unit_ID_lineedit;
-	QLineEdit *ui_unit_name_lineedit;
-	QLineEdit *ui_unit_position_lineedit;
-};
-
-class VideoSetPage : public QWidget
-{
-public:
-	VideoSetPage(QWidget *parent = 0);
-
-	QSpinBox  *ui_video_length;    //视频长度
-	QLineEdit *ui_video_save_path;
-	QPushButton *ui_set_path;
-	QLabel *ui_remaining_space;
-
-	QSpinBox *ui_videoLength_edit;
-	QSpinBox *ui_imageScale_edit;//摄像头高度
-
-	QSpinBox *ui_realLength_edit;
-
-	QString set_path();//slot
-};
-
-class MonitorSetPage : public QWidget
-{
-public:
-	MonitorSetPage(QWidget *parent = 0);
-	QSpinBox  *ui_dritionTime;
-	QSpinBox  *ui_speedthreshold;
-	QSpinBox  *ui_WPthreshold;
-	QCheckBox *ui_recordviedo_CheckBox;
-	QCheckBox *ui_recorddata_CheckBox;
-
-};
-
 
 
 // define SystemSet view
@@ -212,32 +132,29 @@ private:
 
 	SystemSet* _sys_set;
 
-	QListWidget* contentsWidget;
-	QStackedWidget* pagesWidget;
+	//QListWidget* contentsWidget;
+	//QStackedWidget* pagesWidget;
 
-	// 1
+// 1
 	QLineEdit *ui_unit_ID_lineedit;
 	QLineEdit *ui_unit_name_lineedit;
 	QLineEdit *ui_unit_position_lineedit;
 
-	//2
-	//QSpinBox  *ui_video_length;    //视频长度
+//2
 	QLineEdit *ui_video_save_path;
-	QPushButton *ui_set_path;
+	Button_in_LineEdit *ui_set_path;
+
 	QLabel *ui_remaining_space;
 
-	//QSpinBox *ui_videoLength_edit;
-	QSpinBox *ui_imageScale_edit;//摄像头高度
-
+	QSpinBox *ui_real_width_edit;//实际宽度cm
 	QSpinBox *ui_realLength_edit;
 
 	QString set_path();//slot
-	// 3
+
+// 3
 	QSpinBox  *ui_dritionTime;
 	QSpinBox  *ui_speedthreshold;
 	QSpinBox  *ui_WPthreshold;
-	QCheckBox *ui_recordviedo_CheckBox;
-	QCheckBox *ui_recorddata_CheckBox;
 
 public:
 	QCheckBox *ui_send_sms_CheckBox;

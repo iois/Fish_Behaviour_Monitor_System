@@ -79,6 +79,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Button_in_LineEdit.cpp" />
     <ClCompile Include="DataShowWidget.cpp" />
     <ClCompile Include="DetectFishDeath.cpp" />
     <ClCompile Include="DetectFishDeth.cpp" />
@@ -493,6 +494,7 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Button_in_LineEdit.h" />
     <ClInclude Include="DetectFishDeath.h" />
     <ClInclude Include="DetectFishDeth.h" />
     <ClInclude Include="stdafx.h" />

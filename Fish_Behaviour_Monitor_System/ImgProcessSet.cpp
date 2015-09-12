@@ -46,12 +46,12 @@ void ImgProcessSet_view::set_up_UI()
 {
 	ui_num_fish = new QSpinBox(this);
 	QLabel* ui_num_fish_label = new QLabel(this);
-	ui_num_fish_label->setText(tr("鱼条数"));
+	ui_num_fish_label->setText(tr("鱼条数："));
 
 
 	ui_segment_threshold = new QSpinBox(this);
 	QLabel* ui_segment_threshold_label = new QLabel(this);
-	ui_segment_threshold_label->setText(tr("分割阈值"));
+	ui_segment_threshold_label->setText(tr("分割阈值："));
 	ui_segment_threshold->setRange(1, 255);       //设置变化范围  
 
 
@@ -59,13 +59,13 @@ void ImgProcessSet_view::set_up_UI()
 	ui_min_area->setRange(0, 1000);       //设置变化范围  
 	ui_min_area->setSuffix("像素");       //设置输出显示前缀 
 	QLabel* ui_min_area_label = new QLabel(this);
-	ui_min_area_label->setText(tr("最小面积"));
+	ui_min_area_label->setText(tr("最小面积："));
 
 	ui_max_area = new QSpinBox(this);
 	ui_max_area->setRange(0, 5000);       //设置变化范围  
 	ui_max_area->setSuffix("像素");       //设置输出显示前缀 
 	QLabel* ui_max_area_label = new QLabel(this);
-	ui_max_area_label->setText(tr("最大面积"));
+	ui_max_area_label->setText(tr("最大面积："));
 
 	QGridLayout* ui_grid_layout_main = new QGridLayout(this);
 	ui_grid_layout_main->addWidget(ui_num_fish_label, 0, 0);

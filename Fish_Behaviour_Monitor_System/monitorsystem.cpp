@@ -158,7 +158,7 @@ void MonitorSystem::process_start(){
 
 	this->_main_window->ui_data_view_1->add_Graphs(_imgp_set->get_num_fish());
 
-	_detect_fish_death_by_speed.set_num_fishs(_imgp_set->get_num_fish(), _sys_set->_dritionTime, _sys_set->_speedthreshold);
+	_detect_fish_death_by_speed.set_num_fishs(_imgp_set->get_num_fish(), _sys_set->get_dritionTime(), _sys_set->get_speedthreshold());
 };
 
 void MonitorSystem::record()
@@ -382,15 +382,15 @@ void MonitorSystem::time_out_todo(){
 	// [2] 判断死亡
 	if ((_video_processing->_isPrecess) && (_num_of_frames % (NUM_FRAMES*2) == 0) ){
 
-		vector<float> is_deid = _detect_fish_death.input(_video_processing->get_gray_img(), _video_processing->get_fish_contours(), _sys_set->_dritionTime);
+		vector<float> is_deid = _detect_fish_death.input(_video_processing->get_gray_img(), _video_processing->get_fish_contours(), _sys_set->get_dritionTime());
 		
 		//每小时报警一次
-		if (is_deid[0] > 0.8 && (_num_of_frames % (NUM_FRAMES * 10) == 0)){
+		if (is_deid[0] > 0.8 && (_num_of_frames % (NUM_FRAMES * 60*60) == 0)){
 
 			// 死鱼，发出信号
 			QString current_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
 			_main_window->ui_warning_view->add_warning_item(2, 0, tr(": %1 检测到死亡（通过图像分析）").arg(current_time));
-
+			this->_sys_db->Insert_warning(QDateTime::currentDateTime().toString("yyyyMMddhhmmss").toInt(), _video_id, 0);
 			fish_died_todo();
 		}
 
@@ -433,9 +433,11 @@ void MonitorSystem::time_out_todo(){
 			_detect_fish_death_by_speed.update(speed);
 
 			//每小时报警一次
-			if (_detect_fish_death_by_speed.isdied() && (_num_of_frames % (NUM_FRAMES * 60 ) == 0) ){
+			if (_detect_fish_death_by_speed.isdied() && (_num_of_frames % (NUM_FRAMES * 60*60 ) == 0) ){
 				QString current_time = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
 				_main_window->ui_warning_view->add_warning_item(2, 0, tr(": %1 检测到死亡 （通过速度检测，速度过小）。").arg(current_time));
+
+				this->_sys_db->Insert_warning(QDateTime::currentDateTime().toString("yyyyMMddhhmmss").toInt(), _video_id, 1);
 
 				fish_died_todo();
 			}
